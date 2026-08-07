@@ -526,6 +526,20 @@ window.app.ingredients = {
             return;
         }
         
+        const invalidCount = this.premixBuilderRows.filter(r => !r.id && r.name).length;
+        if (invalidCount > 0) {
+            if(window.Swal) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Bahan Tidak Valid',
+                    text: 'Ada bahan yang tidak dikenali. Pastikan Anda memilih bahan dari daftar yang tersedia.'
+                });
+            } else {
+                window.app.toast.show('Ada bahan yang tidak valid.', 'error');
+            }
+            return;
+        }
+
         const validIngredients = this.premixBuilderRows.filter(r => r.id && r.usage > 0);
         
         if (validIngredients.length === 0) {
@@ -547,10 +561,15 @@ window.app.ingredients = {
             premixIngredients: validIngredients
         };
 
+        // Fetch latest data to prevent race conditions across tabs/devices
+        this.data = window.app.storage.getIngredients();
+
         if (this.editId) {
             const index = this.data.findIndex(r => r.id === this.editId);
             if (index !== -1) {
                 this.data[index] = { ...this.data[index], ...premixData };
+            } else {
+                this.data.push(premixData);
             }
         } else {
             premixData.id = window.app.storage.generateId('ing');

@@ -431,7 +431,12 @@ window.app.recipes = {
             window.app.toast.show('Recipe name is required!', 'error');
             return;
         }
-        
+        const invalidCount = this.builderRows.filter(r => !r.id && r.name).length;
+        if (invalidCount > 0) {
+            window.app.toast.show('Ada bahan yang tidak valid/tidak ditemukan. Silakan pilih dari daftar (dropdown).', 'error');
+            return;
+        }
+
         const validIngredients = this.builderRows.filter(r => r.id && r.usage > 0);
         
         if (validIngredients.length === 0) {
@@ -463,10 +468,15 @@ window.app.recipes = {
             finalPrice
         };
 
+        // Fetch latest data to prevent race conditions across tabs/devices
+        this.data = window.app.storage.getRecipes();
+
         if (this.editId) {
             const index = this.data.findIndex(r => r.id === this.editId);
             if (index !== -1) {
                 this.data[index] = recipeToSave;
+            } else {
+                this.data.push(recipeToSave);
             }
         } else {
             this.data.push(recipeToSave);
