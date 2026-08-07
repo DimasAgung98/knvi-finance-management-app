@@ -58,7 +58,7 @@ window.app.recipes = {
                                 </tr>
                             </thead>
                             <tbody>
-                                ${item.ingredients.map(ing => `
+                                ${[...item.ingredients].sort((a, b) => (a.name || '').localeCompare(b.name || '')).map(ing => `
                                     <tr>
                                         <td style="padding: 4px 0;">${ing.name}</td>
                                         <td style="padding: 4px 0;">${ing.usage}</td>
@@ -199,8 +199,9 @@ window.app.recipes = {
             const recipe = this.data.find(r => r.id === recipeId);
             if (recipe) {
                 nameInput.value = recipe.name;
-                // Deep copy ingredients
-                this.builderRows = JSON.parse(JSON.stringify(recipe.ingredients));
+                // Deep copy ingredients and sort them alphabetically
+                this.builderRows = JSON.parse(JSON.stringify(recipe.ingredients))
+                    .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
                 
                 // Final Price
                 const finalPriceInput = document.getElementById('builder-final-price');
@@ -443,7 +444,9 @@ window.app.recipes = {
             return;
         }
 
-        const validIngredients = this.builderRows.filter(r => r.id && r.usage > 0);
+        const validIngredients = this.builderRows
+            .filter(r => r.id && r.usage > 0)
+            .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
         
         if (validIngredients.length === 0) {
             window.app.toast.show('Please add at least one ingredient with usage > 0.', 'error');
