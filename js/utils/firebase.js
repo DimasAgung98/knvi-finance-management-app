@@ -69,7 +69,14 @@ if (!window.FIREBASE_CONFIG || !window.FIREBASE_CONFIG.apiKey) {
             });
             document.getElementById('pin-input').value = ''; // clear for next time
         } catch (err) {
-            Swal.fire('Access Denied', 'PIN Salah!', 'error');
+            console.error("Login Error:", err);
+            // Translate common Firebase errors for better UX
+            let errorMsg = 'PIN Salah!';
+            if (err.code === 'auth/invalid-credential') errorMsg = 'PIN Salah atau akun belum dibuat!';
+            else if (err.code === 'auth/unauthorized-domain') errorMsg = 'Domain ini belum diizinkan di Firebase Auth!';
+            else if (err.message) errorMsg = err.message;
+            
+            Swal.fire('Access Denied', errorMsg, 'error');
             document.getElementById('pin-input').value = '';
         } finally {
             btn.innerHTML = '<i class="ph ph-lock-key"></i> Unlock Dashboard';
