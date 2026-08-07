@@ -6,7 +6,7 @@
   "display": "standalone",
   "background_color": "#f8f9fa",
   "theme_color": "#6f4e37",
-  "orientation": "portrait",
+  "orientation": "any",
   "icons": [
     {
       "src": "https://ui-avatars.com/api/?name=Kanovi&background=6f4e37&color=fff&size=192",
