@@ -170,12 +170,15 @@ window.app.recipes = {
 
         window.print();
 
-        // Cleanup after print dialog closes
-        setTimeout(() => {
+        // Cleanup after print dialog closes using event listener (crucial for mobile where print is async)
+        const cleanup = () => {
             container.classList.remove('active-print');
             container.innerHTML = '';
             if (recipeView) recipeView.classList.remove('hide-on-print-all');
-        }, 1000);
+            window.removeEventListener('afterprint', cleanup);
+        };
+        
+        window.addEventListener('afterprint', cleanup);
     },
 
     // --- Excel-Like Builder Logic ---
