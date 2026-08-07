@@ -92,6 +92,21 @@ window.app = window.app || {};
 document.addEventListener('DOMContentLoaded', () => {
     App.init();
 
+    // Listen for Firebase background sync
+    window.addEventListener('firebase_sync_updated', () => {
+        const activeTab = document.querySelector('.content-area.active');
+        if (!activeTab) return;
+        
+        const tabId = activeTab.id.replace('-page', '');
+        if (tabId === 'recipes' && window.app.recipes) window.app.recipes.render();
+        if (tabId === 'pricing' && window.app.pricing) window.app.pricing.render();
+        if (tabId === 'dashboard' && window.app.dashboard) window.app.dashboard.render();
+        if (tabId === 'sales' && window.app.sales) window.app.sales.render();
+        if (tabId === 'opex' && window.app.opex) window.app.opex.render();
+        if (tabId === 'cashflow' && window.app.cashflow) window.app.cashflow.render();
+        if (tabId === 'ingredients' && window.app.ingredients) window.app.ingredients.render();
+    });
+
     // Register PWA Service Worker
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js').then(reg => {
