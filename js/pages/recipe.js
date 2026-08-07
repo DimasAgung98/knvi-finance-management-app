@@ -148,12 +148,15 @@ window.app.recipes = {
                             </tr>
                         </thead>
                         <tbody>
-                            ${recipe.ingredients.map((ing, i) => `
+                            ${recipe.ingredients
+                                .filter(ing => !(ing.category && ing.category.toLowerCase() === 'packaging'))
+                                .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+                                .map((ing, i) => `
                                 <tr>
                                     <td style="text-align: center; border: 1px solid #000; padding: 8px;">${i + 1}</td>
-                                    <td style="border: 1px solid #000; padding: 8px;">${ing.category && ing.category.toLowerCase() === 'packaging' ? 'Packaging' : 'Bahan'}</td>
+                                    <td style="border: 1px solid #000; padding: 8px;">Bahan</td>
                                     <td style="border: 1px solid #000; padding: 8px;">${ing.name}</td>
-                                    <td style="text-align: center; border: 1px solid #000; padding: 8px; font-weight: bold; font-size: 1.1em;">${ing.usage} ${ing.buyUnit}</td>
+                                    <td style="text-align: center; border: 1px solid #000; padding: 8px; font-weight: bold; font-size: 1.1em;">${ing.usage} ${ing.buyUnit || ''}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
