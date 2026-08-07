@@ -499,6 +499,7 @@ window.app.recipes = {
             'Are you sure you want to delete this recipe?'
         ).then((result) => {
             if (result.isConfirmed) {
+                this.data = window.app.storage.getRecipes();
                 this.data = this.data.filter(item => item.id !== id);
                 window.app.storage.saveRecipes(this.data);
                 this.render();
@@ -519,6 +520,7 @@ window.app.recipes = {
         newRecipe.id = window.app.storage.generateId('rec');
         newRecipe.name = 'Copy of ' + newRecipe.name;
         
+        this.data = window.app.storage.getRecipes();
         this.data.push(newRecipe);
         window.app.storage.saveRecipes(this.data);
         

@@ -499,21 +499,24 @@ window.app.opex = {
         const notes = document.getElementById('opex-notes').value.trim();
         
         const monthlyCost = this.convertAmountToMonthly(originalAmount, period);
+        
+        const newRecord = {
+            id: editId || window.app.storage.generateId('opex'),
+            name, category, period, originalAmount, monthlyCost, startDate, endDate, status, recurring, notes
+        };
+
+        // Fetch latest data to prevent race conditions
+        this.data = window.app.storage.getOpex();
 
         if (editId) {
-            const index = this.data.findIndex(item => item.id === editId);
+            const index = this.data.findIndex(d => d.id === editId);
             if (index !== -1) {
-                this.data[index] = {
-                    ...this.data[index],
-                    name, category, period, originalAmount, monthlyCost, startDate, endDate, status, recurring, notes
-                };
+                this.data[index] = newRecord;
+            } else {
+                this.data.push(newRecord);
             }
         } else {
-            const newOpex = {
-                id: window.app.storage.generateId('opex'),
-                name, category, period, originalAmount, monthlyCost, startDate, endDate, status, recurring, notes
-            };
-            this.data.push(newOpex);
+            this.data.push(newRecord);
         }
 
         window.app.storage.saveOpex(this.data);
@@ -529,7 +532,8 @@ window.app.opex = {
             'Are you sure you want to delete this expense item? This will affect your profit analysis.'
         ).then((result) => {
             if (result.isConfirmed) {
-                this.data = this.data.filter(item => item.id !== id);
+                this.data = window.app.storage.getOpex();
+                this.data = this.data.filter(d => d.id !== id);
                 window.app.storage.saveOpex(this.data);
                 this.render();
                 window.app.toast.show('Expense deleted.');

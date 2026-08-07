@@ -211,7 +211,7 @@ window.app.cashflow = {
         const amount = parseInt(amtVal.replace(/\./g, '')) || 0;
         if (amount <= 0) return;
 
-        const newExpense = {
+        const expense = {
             id: window.app.storage.generateId('exp'),
             date,
             note,
@@ -219,7 +219,20 @@ window.app.cashflow = {
             paymentMethod: method
         };
 
-        this.expenses.push(newExpense);
+        // Fetch latest data to prevent race conditions
+        this.expenses = window.app.storage.getDailyExpenses();
+
+        if (this.editId) {
+            const index = this.expenses.findIndex(e => e.id === this.editId);
+            if (index !== -1) {
+                this.expenses[index] = expense;
+            } else {
+                this.expenses.push(expense);
+            }
+        } else {
+            this.expenses.push(expense);
+        }
+
         window.app.storage.saveDailyExpenses(this.expenses);
         
         if(window.app.modal) window.app.modal.close();
@@ -244,6 +257,7 @@ window.app.cashflow = {
             confirmButtonText: 'Ya, hapus!'
         }).then((result) => {
             if (result.isConfirmed) {
+                this.expenses = window.app.storage.getDailyExpenses();
                 this.expenses = this.expenses.filter(e => e.id !== id);
                 window.app.storage.saveDailyExpenses(this.expenses);
                 this.render();

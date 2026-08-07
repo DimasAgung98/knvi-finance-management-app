@@ -248,6 +248,9 @@ window.app.ingredients = {
             isPremix: false
         };
 
+        // Fetch latest data to prevent race conditions
+        this.data = window.app.storage.getIngredients();
+
         if (this.editId) {
             const index = this.data.findIndex(i => i.id === this.editId);
             if (index !== -1) {
@@ -295,6 +298,7 @@ window.app.ingredients = {
             'Are you sure you want to delete this ingredient?'
         ).then((result) => {
             if (result.isConfirmed) {
+                this.data = window.app.storage.getIngredients();
                 this.data = this.data.filter(item => item.id !== id);
                 window.app.storage.saveIngredients(this.data);
                 this.populateFilter();

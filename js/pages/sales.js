@@ -335,6 +335,9 @@ window.app.sales = {
             opex
         };
 
+        // Fetch latest data to prevent race conditions
+        this.data = window.app.storage.getSalesHistory();
+
         if (id) {
             const existingIdx = this.data.findIndex(d => d.id === id);
             if (existingIdx !== -1) {
@@ -374,6 +377,7 @@ window.app.sales = {
             confirmButtonText: 'Yes, delete it!'
         }).then((result) => {
             if (result.isConfirmed) {
+                this.data = window.app.storage.getSalesHistory();
                 this.data = this.data.filter(d => d.id !== id);
                 window.app.storage.saveSalesHistory(this.data);
                 this.render();
