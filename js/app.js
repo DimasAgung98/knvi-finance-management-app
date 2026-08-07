@@ -83,9 +83,6 @@ const App = {
     
     setupDummyData() {
         // We will implement this in the storage utility, but call it here
-        if (window.app && window.app.storage && window.app.storage.isFirstRun()) {
-            window.app.storage.seedDummyData();
-        }
     }
 };
 
