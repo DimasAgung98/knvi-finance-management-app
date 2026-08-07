@@ -1,0 +1,22 @@
+{
+  "name": "Kanovi Cost Management",
+  "short_name": "Kanovi ERP",
+  "description": "Aplikasi Manajemen Keuangan & HPP untuk Kanovi",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8f9fa",
+  "theme_color": "#6f4e37",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://ui-avatars.com/api/?name=Kanovi&background=6f4e37&color=fff&size=192",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://ui-avatars.com/api/?name=Kanovi&background=6f4e37&color=fff&size=512",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
