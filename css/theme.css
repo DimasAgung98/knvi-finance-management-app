@@ -1,0 +1,54 @@
+:root {
+  /* Colors - Light Theme */
+  --bg-main: #f8f9fa;
+  --bg-card: #ffffff;
+  --bg-sidebar: #ffffff;
+  
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --text-muted: #adb5bd;
+  
+  --primary-color: #6f4e37; /* Coffee Brown */
+  --primary-hover: #5a3f2d;
+  --secondary-color: #e9ecef;
+  --secondary-hover: #dee2e6;
+  
+  --success-color: #2b8a3e; /* Green */
+  --warning-color: #f59f00; /* Yellow/Orange */
+  --danger-color: #c92a2a; /* Red */
+  
+  --border-color: #e9ecef;
+  
+  /* Shadows & Radius */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px; /* User requested Rounded 16px */
+  
+  /* Typography */
+  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  
+  /* Layout */
+  --sidebar-width: 260px;
+  --header-height: 70px;
+}
+
+[data-theme="dark"] {
+  /* Colors - Dark Theme */
+  --bg-main: #121212;
+  --bg-card: #1e1e1e;
+  --bg-sidebar: #1e1e1e;
+  
+  --text-primary: #f8f9fa;
+  --text-secondary: #ced4da;
+  --text-muted: #6c757d;
+  
+  --primary-color: #8b6b55; /* Lighter Coffee Brown for Dark Mode */
+  --primary-hover: #a17d64;
+  --secondary-color: #2b2b2b;
+  --secondary-hover: #3b3b3b;
+  
+  --border-color: #2b2b2b;
+}

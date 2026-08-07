@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanovi Finance and Accounting Management</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Icons (Phosphor Icons) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Firebase -->
+    <script src="config.js"></script>
+    <script type="module" src="js/utils/firebase.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header" style="gap: 12px;">
+                <div
+                    style="width: 32px; height: 32px; background: var(--primary-color); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white;">
+                    <i class="ph ph-coffee"></i>
+                </div>
+                <div style="line-height: 1.2;">
+                    <div style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary);">KNVI</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 500;">Cost Management
+                    </div>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="sidebar-section-title">Operations</div>
+                <a href="#" class="nav-item active" data-page="dashboard">
+                    <i class="ph ph-squares-four"></i> <span>Dashboard</span>
+                    <i class="ph ph-caret-right ml-auto"></i>
+                </a>
+                <a href="#" class="nav-item" data-page="ingredients">
+                    <i class="ph ph-bag"></i> <span>Ingredients</span>
+                    <i class="ph ph-caret-right ml-auto"></i>
+                </a>
+                <a href="#" class="nav-item" data-page="recipes">
+                    <i class="ph ph-notebook"></i> <span>Recipes</span>
+                    <i class="ph ph-caret-right ml-auto"></i>
+                </a>
+
+                <div class="sidebar-section-title">Finance & Accounting</div>
+                <a href="#" class="nav-item" data-page="pricing">
+                    <i class="ph ph-tag"></i> <span>Pricing Calculator</span>
+                    <i class="ph ph-caret-right ml-auto"></i>
+                </a>
+                <a href="#" class="nav-item" data-page="opex">
+                    <i class="ph ph-receipt"></i> <span>OPEX</span>
+                    <i class="ph ph-caret-right ml-auto"></i>
+                </a>
+                <a href="#" class="nav-item" data-page="profit">
+                    <i class="ph ph-chart-line-up"></i> <span>Profit Analysis</span>
+                    <i class="ph ph-caret-right ml-auto"></i>
+                </a>
+                <a href="#" class="nav-item" data-page="sales">
+                    <i class="ph ph-calendar-check"></i> <span>Sales History</span>
+                    <i class="ph ph-caret-right ml-auto"></i>
+                </a>
+                <a href="#" class="nav-item" data-page="cashflow">
+                    <i class="ph ph-wallet"></i> <span>Buku Kas</span>
+                    <i class="ph ph-caret-right ml-auto"></i>
+                </a>
+
+                <div class="sidebar-section-title" style="margin-top: auto; padding-top: 24px;">Administration</div>
+                <a href="#" class="nav-item" id="themeToggle">
+                    <i class="ph ph-moon"></i> <span>Toggle Dark Mode</span>
+                    <i class="ph ph-caret-right ml-auto"></i>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <h1 class="page-title" id="topPageTitle">Dashboard</h1>
+                <div class="header-actions">
+                    <!-- Actions can go here -->
+                </div>
+            </header>
+
+            <!-- Dashboard Page -->
+            <div id="dashboard-page" class="content-area active">
+
+                <!-- Empty State -->
+                <div id="dashboard-empty-state" class="empty-state" style="display: none;">
+                    <div class="empty-state-content">
+                        <i class="ph ph-rocket" style="font-size: 4rem; color: var(--primary-color);"></i>
+                        <h2 style="margin: 16px 0 8px;">Welcome to Kanovi Cost Management</h2>
+                        <p style="color: var(--text-secondary); margin-bottom: 32px;">Let's set up your business in 4
+                            simple steps.</p>
+
+                        <div class="onboarding-steps">
+                            <div class="step-card" onclick="document.querySelector('[data-page=ingredients]').click()">
+                                <div class="step-number">1</div>
+                                <h4>Add Ingredients</h4>
+                                <p>Enter raw materials and premixes.</p>
+                            </div>
+                            <div class="step-card" onclick="document.querySelector('[data-page=recipes]').click()">
+                                <div class="step-number">2</div>
+                                <h4>Create Recipe</h4>
+                                <p>Build your menu items.</p>
+                            </div>
+                            <div class="step-card" onclick="document.querySelector('[data-page=pricing]').click()">
+                                <div class="step-number">3</div>
+                                <h4>Calculate Pricing</h4>
+                                <p>Determine your selling price.</p>
+                            </div>
+                            <div class="step-card" onclick="document.querySelector('[data-page=profit]').click()">
+                                <div class="step-number">4</div>
+                                <h4>Analyze Profit</h4>
+                                <p>Review margins and food cost.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Dashboard View -->
+                <div id="dashboard-main-view">
+
+                    <!-- Quick Actions -->
+                    <div class="quick-actions-row">
+                        <button class="btn btn-secondary action-btn"
+                            onclick="document.querySelector('[data-page=recipes]').click(); setTimeout(() => window.app.recipes.openBuilder(), 100);">
+                            <i class="ph ph-plus-circle"></i> Add Recipe
+                        </button>
+                        <button class="btn btn-secondary action-btn"
+                            onclick="document.querySelector('[data-page=ingredients]').click(); setTimeout(() => window.app.ingredients.openModal(), 100);">
+                            <i class="ph ph-plus-circle"></i> Add Ingredient
+                        </button>
+                        <button class="btn btn-secondary action-btn"
+                            onclick="document.querySelector('[data-page=pricing]').click()">
+                            <i class="ph ph-calculator"></i> Pricing Calculator
+                        </button>
+                        <button class="btn btn-secondary action-btn"
+                            onclick="document.querySelector('[data-page=profit]').click()">
+                            <i class="ph ph-chart-line-up"></i> Analyze Profit
+                        </button>
+                    </div>
+
+                    <!-- Top Row: Business Health & Insights -->
+                    <div class="dashboard-hero-grid">
+                        <div class="card health-card" id="dashboard-health-card">
+                            <!-- Injected by JS -->
+                        </div>
+                        <div class="card insights-card">
+                            <h3 style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;"><i
+                                    class="ph ph-lightbulb" style="color: var(--warning-color);"></i> Business Insights
+                            </h3>
+                            <ul class="insights-list" id="dashboard-insights-list">
+                                <!-- Injected by JS -->
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Core Metrics -->
+                    <div class="dashboard-grid" id="dashboard-metrics" style="margin-top: 24px;">
+                        <!-- Metrics injected via JS -->
+                    </div>
+
+                    <!-- Product Rankings -->
+                    <div class="dashboard-rankings-grid" style="margin-top: 24px;">
+                        <div class="card ranking-card">
+                            <h3 style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;"><i
+                                    class="ph ph-trend-up" style="color: var(--success-color);"></i> Top Profit Products
+                            </h3>
+                            <div class="ranking-list" id="dashboard-top-products">
+                                <!-- Injected by JS -->
+                            </div>
+                        </div>
+                        <div class="card ranking-card">
+                            <h3 style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;"><i
+                                    class="ph ph-trend-down" style="color: var(--danger-color);"></i> Lowest Profit
+                                Products</h3>
+                            <div class="ranking-list" id="dashboard-lowest-products">
+                                <!-- Injected by JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Stats & Chart -->
+                    <div class="dashboard-stats-grid" style="margin-top: 24px;">
+
+                        <div class="card stats-card">
+                            <h3 style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;"><i
+                                    class="ph ph-chart-bar" style="color: var(--primary-color);"></i> Dashboard
+                                Statistics</h3>
+                            <div class="stats-list" id="dashboard-quick-stats">
+                                <!-- Injected by JS -->
+                            </div>
+                        </div>
+                        <div class="card activity-card">
+                            <h3 style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;"><i
+                                    class="ph ph-clock-counter-clockwise" style="color: var(--text-secondary);"></i>
+                                Recent Activity</h3>
+                            <ul class="activity-list" id="dashboard-recent-activity">
+                                <!-- Injected by JS -->
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Profitability Table -->
+                    <div class="card" style="margin-top: 24px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3>Menu Profitability</h3>
+                        </div>
+                        <div style="overflow-x: auto; margin-top: 16px;">
+                            <table class="excel-table">
+                                <thead>
+                                    <tr id="profit-table-head">
+                                        <th class="sortable" data-sort="name"
+                                            style="text-align: left; cursor: pointer; user-select: none;"
+                                            onclick="window.app.dashboard.sortTable('name')">Product / Menu <i
+                                                class="ph ph-caret-up-down" style="opacity:0.3"></i></th>
+                                        <th class="sortable" data-sort="cost"
+                                            style="text-align: right; cursor: pointer; user-select: none;"
+                                            onclick="window.app.dashboard.sortTable('cost')">Final COGS <i
+                                                class="ph ph-caret-up-down" style="opacity:0.3"></i></th>
+                                        <th class="sortable" data-sort="sp"
+                                            style="text-align: right; cursor: pointer; user-select: none;"
+                                            onclick="window.app.dashboard.sortTable('sp')">Selling Price <i
+                                                class="ph ph-caret-up-down" style="opacity:0.3"></i></th>
+                                        <th class="sortable" data-sort="profit"
+                                            style="text-align: right; cursor: pointer; user-select: none;"
+                                            onclick="window.app.dashboard.sortTable('profit')">Gross Profit <i
+                                                class="ph ph-caret-up-down" style="opacity:0.3"></i></th>
+                                        <th class="sortable" data-sort="margin"
+                                            style="text-align: right; cursor: pointer; user-select: none;"
+                                            onclick="window.app.dashboard.sortTable('margin')">Margin % <i
+                                                class="ph ph-caret-up-down" style="opacity:0.3"></i></th>
+                                        <th class="sortable" data-sort="fc"
+                                            style="text-align: right; cursor: pointer; user-select: none;"
+                                            onclick="window.app.dashboard.sortTable('fc')">Food Cost % <i
+                                                class="ph ph-caret-up-down" style="opacity:0.3"></i></th>
+                                        <th style="text-align: center;">Status</th>
+                                        <th style="text-align: left;">Recommendation</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dashboard-profit-table">
+                                    <!-- Rows injected via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ingredients Page -->
+            <div id="ingredients-page" class="content-area">
+
+                <!-- List View -->
+                <div id="ingredient-list-view">
+                    <div
+                        style="display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center; gap: 10px;">
+                        <div style="display: flex; gap: 10px; flex: 1;">
+                            <input type="text" class="form-control" style="max-width: 300px;"
+                                placeholder="Search ingredients..." id="ingredient-search">
+                            <select class="form-control" style="max-width: 200px;" id="ingredient-category-filter">
+                                <option value="">All Categories</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="file" id="csv-upload-input" accept=".csv" style="display: none;"
+                                onchange="window.app.ingredients.handleCsvUpload(event)">
+                            <button class="btn btn-secondary" onclick="window.app.ingredients.exportCsv()"
+                                title="Export All Data (CSV)" style="padding: 8px;"><i
+                                    class="ph ph-export"></i></button>
+                            <button class="btn btn-secondary" onclick="window.app.ingredients.downloadCsvTemplate()"
+                                title="Download CSV Template" style="padding: 8px;"><i
+                                    class="ph ph-file-csv"></i></button>
+                            <button class="btn btn-secondary"
+                                onclick="document.getElementById('csv-upload-input').click()" title="Import CSV"
+                                style="padding: 8px;"><i class="ph ph-upload-simple"></i></button>
+                            <button class="btn btn-secondary" onclick="window.app.ingredients.openModal()"><i
+                                    class="ph ph-plus"></i> Add Raw</button>
+                            <button class="btn btn-primary" onclick="window.app.ingredients.openPremixBuilder()"><i
+                                    class="ph ph-plus"></i> Add Premix</button>
+                        </div>
+                    </div>
+                    <div id="ingredient-list" style="display: flex; flex-direction: column; gap: 12px;">
+                        <!-- Injected via JS -->
+                    </div>
+                </div>
+
+                <!-- Premix Builder View (Excel-like) -->
+                <div id="premix-builder-view" style="display:none;">
+                    <div class="card" style="padding: 0; overflow: hidden;">
+                        <div
+                            style="padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h3 style="margin-bottom: 10px;">Premix Builder</h3>
+                                <div style="display: flex; gap: 10px;">
+                                    <input type="text" id="builder-premix-name" class="form-control"
+                                        placeholder="Premix Name (e.g. Simple Syrup)"
+                                        style="width: 250px; font-weight: 500;">
+                                    <input type="text" id="builder-premix-category" class="form-control"
+                                        placeholder="Category" list="premix-category-list" style="width: 150px;">
+                                    <datalist id="premix-category-list"></datalist>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="btn btn-secondary"
+                                    onclick="window.app.ingredients.closePremixBuilder()">Cancel</button>
+                                <button class="btn btn-primary" onclick="window.app.ingredients.savePremix()"><i
+                                        class="ph ph-floppy-disk"></i> Save Premix</button>
+                            </div>
+                        </div>
+
+                        <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+                            <table class="excel-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 50px; text-align: center;">No</th>
+                                        <th style="width: 120px;">Jenis</th>
+                                        <th>Bahan/Packaging</th>
+                                        <th style="width: 120px; text-align: center;">Komposisi</th>
+                                        <th style="width: 150px; text-align: right;">Harga Beli</th>
+                                        <th style="width: 100px; text-align: center;" colspan="2">Volume</th>
+                                        <th style="width: 150px; text-align: right;">Total Harga</th>
+                                        <th style="width: 50px; text-align: center;"><i class="ph ph-trash"></i></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="premix-builder-table-body">
+                                    <!-- Rows injected via JS -->
+                                </tbody>
+                            </table>
+                            <div style="padding: 10px; text-align: center; border-top: 1px solid var(--border-color);">
+                                <button class="btn btn-secondary"
+                                    style="width: 100%; border: 1px dashed var(--border-color);"
+                                    onclick="window.app.ingredients.addPremixRow()"><i class="ph ph-plus"></i> Tambah
+                                    Bahan Baku</button>
+                            </div>
+                        </div>
+
+                        <div
+                            style="padding: 24px; background: var(--bg-main); border-top: 1px solid var(--border-color);">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div
+                                    style="padding: 16px; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                                    <div style="font-weight: 600; margin-bottom: 8px;">TOTAL BIAYA PRODUKSI (COGS)</div>
+                                    <div style="font-weight: 700; font-size: 1.2rem;" id="premix-total-cogs">Rp 0</div>
+                                </div>
+                                <div
+                                    style="padding: 16px; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                                    <div style="font-weight: 600; margin-bottom: 8px;">HASIL AKHIR (YIELD)</div>
+                                    <div style="display: flex; gap: 10px; align-items: center;">
+                                        <input type="number" id="builder-premix-yield-qty" class="form-control"
+                                            placeholder="Qty" min="0.01" step="0.01" style="width: 100px;"
+                                            oninput="window.app.ingredients.updatePremixTotals()">
+                                        <input type="text" id="builder-premix-yield-unit" class="form-control"
+                                            placeholder="Unit (e.g. ml)" list="premix-unit-list" style="width: 100px;">
+                                        <datalist id="premix-unit-list"></datalist>
+                                    </div>
+                                    <div style="margin-top: 8px; font-size: 0.85em; color: var(--text-secondary);">
+                                        Cost / Unit: <strong id="premix-cost-per-unit">Rp 0</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Recipes Page -->
+            <div id="recipes-page" class="content-area">
+
+                <!-- List View -->
+                <div id="recipe-list-view">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                        <input type="text" class="form-control" style="max-width: 300px;"
+                            placeholder="Search recipes..." id="recipe-search">
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-secondary" onclick="window.app.recipes.printAllCheatSheets()"><i
+                                    class="ph ph-printer"></i> Print All SOP</button>
+                            <button class="btn btn-primary" onclick="window.app.recipes.openBuilder()"><i
+                                    class="ph ph-plus"></i> Add Recipe</button>
+                        </div>
+                    </div>
+                    <div id="recipe-list" style="display: flex; flex-direction: column; gap: 12px;">
+                        <!-- Injected via JS -->
+                    </div>
+                </div>
+
+                <!-- Builder View (Excel-like) -->
+                <div id="recipe-builder-view" style="display:none;">
+                    <div class="card" style="padding: 0; overflow: hidden;">
+                        <div
+                            style="padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h3 style="margin-bottom: 10px;">Recipe Builder</h3>
+                                <input type="text" id="builder-recipe-name" class="form-control"
+                                    placeholder="Enter Recipe Name..."
+                                    style="max-width: 400px; font-size: 1.1rem; font-weight: 500;">
+                            </div>
+                            <div style="display: flex; gap: 10px;" class="no-print">
+                                <button class="btn btn-secondary" onclick="window.print()"
+                                    title="Print SOP/Cheat Sheet"><i class="ph ph-printer"></i> Print Cheat
+                                    Sheet</button>
+                                <button class="btn btn-secondary"
+                                    onclick="window.app.recipes.closeBuilder()">Cancel</button>
+                                <button class="btn btn-primary" onclick="window.app.recipes.saveBuilder()"><i
+                                        class="ph ph-floppy-disk"></i> Save Recipe</button>
+                            </div>
+                        </div>
+
+                        <div class="table-container" style="max-height: 500px; overflow-y: auto;">
+                            <table class="excel-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 50px; text-align: center;">No</th>
+                                        <th style="width: 120px;">Jenis</th>
+                                        <th>Bahan/Packaging</th>
+                                        <th style="width: 120px; text-align: center;">Komposisi</th>
+                                        <th style="width: 150px; text-align: right;" class="hide-print">Harga Beli</th>
+                                        <th style="width: 100px; text-align: center;" colspan="2">Volume</th>
+                                        <th style="width: 150px; text-align: right;" class="hide-print">Total Harga</th>
+                                        <th style="width: 50px; text-align: center;" class="hide-print"><i
+                                                class="ph ph-trash"></i></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="builder-table-body">
+                                    <!-- Rows injected via JS -->
+                                </tbody>
+                            </table>
+                            <div class="hide-print"
+                                style="padding: 10px; text-align: center; border-top: 1px solid var(--border-color);">
+                                <button class="btn btn-secondary"
+                                    style="width: 100%; border: 1px dashed var(--border-color);"
+                                    onclick="window.app.recipes.addBuilderRow()"><i class="ph ph-plus"></i> Tambah
+                                    Bahan</button>
+                            </div>
+                        </div>
+
+                        <div class="hide-print"
+                            style="padding: 24px; background: var(--secondary-color); border-top: 1px solid var(--border-color);">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 12px 16px; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                                <div style="font-weight: 600;">TOTAL BIAYA BAHAN BAKU (RAW COGS)</div>
+                                <div style="font-weight: 700; font-size: 1.1rem;" id="builder-total-cogs">Rp 0</div>
+                            </div>
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 12px 16px; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                                <div>
+                                    <div style="font-weight: 600;">WASTE / BUFFER FACTOR</div>
+                                    <div style="font-size: 0.85em; color: var(--text-secondary);">Antisipasi tumpah,
+                                        basi, fluktuasi harga</div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="number" id="builder-buffer-pct" class="form-control"
+                                        style="width: 70px; text-align: center; font-weight: 600;" value="10" min="0"
+                                        oninput="window.app.recipes.updateBuilderTotals()">
+                                    <span style="font-weight: 700;">%</span>
+                                </div>
+                            </div>
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 12px 16px; background: rgba(220, 53, 69, 0.1); border: 1px solid var(--danger-color); border-radius: var(--radius-sm);">
+                                <div style="font-weight: 700; color: var(--danger-color);">FINAL COGS (Modal Aktual)
+                                </div>
+                                <div style="font-weight: 700; font-size: 1.2rem; color: var(--danger-color);"
+                                    id="builder-final-cogs">Rp 0</div>
+                            </div>
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                                <div>
+                                    <div style="font-weight: 600;">HARGA JUAL (MINIMUM) <span
+                                            style="font-size: 0.85em; font-weight: normal; color: var(--text-secondary); margin-left: 8px;">Target
+                                            35% Food Cost</span></div>
+                                </div>
+                                <div style="font-weight: 600;" id="builder-min-price">Rp 0</div>
+                            </div>
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding: 16px; background: rgba(43, 138, 62, 0.1); border: 1px solid var(--success-color); border-radius: var(--radius-sm);">
+                                <div>
+                                    <div style="font-weight: 700; color: var(--success-color);">HARGA JUAL (REKOMENDASI)
+                                        <span
+                                            style="font-size: 0.85em; font-weight: normal; opacity: 0.8; margin-left: 8px;">Target
+                                            30% Food Cost</span>
+                                    </div>
+                                </div>
+                                <div style="font-weight: 700; font-size: 1.25rem; color: var(--success-color);"
+                                    id="builder-rec-price">Rp 0</div>
+                            </div>
+
+                            <!-- Custom Pricing Panel -->
+                            <div
+                                style="margin-top: 20px; padding: 16px; background: var(--bg-card); border-radius: var(--radius-sm); border: 1px solid var(--primary-color);">
+                                <div
+                                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                                    <div style="font-weight: 700; color: var(--primary-color); font-size: 1.1rem;">HARGA
+                                        JUAL FINAL (AKTUAL)</div>
+                                    <input type="text" id="builder-final-price" class="form-control"
+                                        style="width: 180px; font-size: 1.1rem; font-weight: 700; text-align: right;"
+                                        placeholder="Rp..."
+                                        oninput="window.app.formatter.formatInput(this); window.app.recipes.updateProfitAnalysis()">
+                                </div>
+                                <div
+                                    style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; border-top: 1px dashed var(--border-color); padding-top: 16px;">
+                                    <div style="text-align: center; border-right: 1px solid var(--border-color);">
+                                        <div
+                                            style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 4px;">
+                                            Food Cost (%)</div>
+                                        <div id="builder-food-cost-pct" style="font-weight: 700; font-size: 1.1rem;">0%
+                                        </div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
+                                            (Ideal: &lt; 30%)</div>
+                                    </div>
+                                    <div style="text-align: center; border-right: 1px solid var(--border-color);">
+                                        <div
+                                            style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 4px;">
+                                            Gross Profit (Rp)</div>
+                                        <div id="builder-gross-profit"
+                                            style="font-weight: 700; font-size: 1.1rem; color: var(--success-color);">Rp
+                                            0</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Per
+                                            porsi</div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <div
+                                            style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 4px;">
+                                            Gross Margin (%)</div>
+                                        <div id="builder-gross-margin"
+                                            style="font-weight: 700; font-size: 1.1rem; color: var(--success-color);">0%
+                                        </div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
+                                            (Ideal: &gt; 70%)</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Pricing Page -->
+            <div id="pricing-page" class="content-area">
+                <div class="card">
+                    <h3>Pricing Calculator</h3>
+                    <p>Select a recipe to calculate optimal pricing based on target margins.</p>
+                    <div style="margin-top:20px;">
+                        <label>Select Recipe:</label>
+                        <select class="form-control" id="pricing-recipe-select" style="max-width: 300px;">
+                            <option value="">-- Choose Recipe --</option>
+                        </select>
+                    </div>
+                    <div id="pricing-results" style="margin-top:20px;"></div>
+                </div>
+            </div>
+
+            <!-- OPEX Page -->
+            <div id="opex-page" class="content-area">
+
+                <!-- Empty State -->
+                <div id="opex-empty-state" class="empty-state" style="display: none;">
+                    <div class="empty-state-content">
+                        <i class="ph ph-receipt" style="font-size: 4rem; color: var(--primary-color);"></i>
+                        <h2 style="margin: 16px 0 8px;">Operating Expense Management</h2>
+                        <p style="color: var(--text-secondary); margin-bottom: 32px;">Centralize all your business
+                            expenses in 4 steps.</p>
+
+                        <div class="onboarding-steps">
+                            <div class="step-card" onclick="window.app.opex.openModal()">
+                                <div class="step-number">1</div>
+                                <h4>Add Expenses</h4>
+                                <p>Record your operational costs.</p>
+                            </div>
+                            <div class="step-card" onclick="window.app.opex.openModal()">
+                                <div class="step-number">2</div>
+                                <h4>Categorize</h4>
+                                <p>Organize by Payroll, Rent, etc.</p>
+                            </div>
+                            <div class="step-card" onclick="window.app.opex.openModal()">
+                                <div class="step-number">3</div>
+                                <h4>Auto-Calculate</h4>
+                                <p>System converts to Monthly OPEX.</p>
+                            </div>
+                            <div class="step-card" onclick="document.querySelector('[data-page=dashboard]').click()">
+                                <div class="step-number">4</div>
+                                <h4>Analyze</h4>
+                                <p>View automatically in Dashboard & Profit.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main OPEX View -->
+                <div id="opex-main-view">
+
+                    <div
+                        style="display: flex; justify-content: space-between; margin-bottom: 24px; align-items: center;">
+                        <h2 style="margin:0;">Operating Expenses</h2>
+                        <button class="btn btn-primary" onclick="window.app.opex.openModal()"><i
+                                class="ph ph-plus-circle"></i> Add Expense</button>
+                    </div>
+
+                    <!-- Top Summary Cards -->
+                    <div class="dashboard-grid" id="opex-metrics-grid" style="margin-bottom: 24px;">
+                        <!-- Injected by JS -->
+                    </div>
+
+                    <!-- Analytics Section -->
+                    <div class="dashboard-hero-grid" style="margin-bottom: 24px;">
+                        <div class="card opex-chart-card">
+                            <h3 style="margin-bottom: 16px;">Expense Distribution</h3>
+                            <div style="height: 250px; position: relative;">
+                                <canvas id="opexPieChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="card insights-card">
+                            <h3 style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;"><i
+                                    class="ph ph-lightbulb" style="color: var(--warning-color);"></i> Business Insights
+                            </h3>
+                            <ul class="insights-list" id="opex-insights-list">
+                                <!-- Injected by JS -->
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-stats-grid" style="margin-bottom: 24px;">
+                        <div class="card" style="grid-column: span 1;">
+                            <h3 style="margin-bottom: 16px;">Top 10 Expenses</h3>
+                            <div style="height: 250px; position: relative;">
+                                <canvas id="opexBarChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="card" style="grid-column: span 1;">
+                            <h3 style="margin-bottom: 16px;">Category Summary</h3>
+                            <div class="stats-list" id="opex-category-summary"
+                                style="max-height: 250px; overflow-y: auto; padding-right: 8px;">
+                                <!-- Injected by JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Expense Table & Controls -->
+                    <div class="card">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 16px;">
+                            <h3>Expense Directory</h3>
+                            <div
+                                style="display: flex; gap: 12px; flex: 1; max-width: 600px; justify-content: flex-end;">
+                                <input type="text" class="form-control" style="max-width: 200px;"
+                                    placeholder="Search expense..." id="opex-search"
+                                    oninput="window.app.opex.renderTable()">
+                                <select class="form-control" style="max-width: 150px;" id="opex-filter-category"
+                                    onchange="window.app.opex.renderTable()">
+                                    <option value="">All Categories</option>
+                                    <!-- Injected by JS -->
+                                </select>
+                                <select class="form-control" style="max-width: 150px;" id="opex-filter-status"
+                                    onchange="window.app.opex.renderTable()">
+                                    <option value="">All Statuses</option>
+                                    <option value="Active">Active</option>
+                                    <option value="Inactive">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="overflow-x: auto;">
+                            <table class="excel-table" id="opex-main-table">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align: left; cursor: pointer;"
+                                            onclick="window.app.opex.sortTable('name')">Expense Name <i
+                                                class="ph ph-arrows-down-up"
+                                                style="font-size: 0.8em; color: var(--text-muted);"></i></th>
+                                        <th style="text-align: left; cursor: pointer;"
+                                            onclick="window.app.opex.sortTable('category')">Category <i
+                                                class="ph ph-arrows-down-up"
+                                                style="font-size: 0.8em; color: var(--text-muted);"></i></th>
+                                        <th style="text-align: right; cursor: pointer;"
+                                            onclick="window.app.opex.sortTable('originalAmount')">Original Amount <i
+                                                class="ph ph-arrows-down-up"
+                                                style="font-size: 0.8em; color: var(--text-muted);"></i></th>
+                                        <th style="text-align: center; cursor: pointer;"
+                                            onclick="window.app.opex.sortTable('period')">Billing Period <i
+                                                class="ph ph-arrows-down-up"
+                                                style="font-size: 0.8em; color: var(--text-muted);"></i></th>
+                                        <th style="text-align: right; cursor: pointer;"
+                                            onclick="window.app.opex.sortTable('monthlyCost')">Monthly Allocation <i
+                                                class="ph ph-arrows-down-up"
+                                                style="font-size: 0.8em; color: var(--text-muted);"></i></th>
+                                        <th style="text-align: center; cursor: pointer;"
+                                            onclick="window.app.opex.sortTable('status')">Status <i
+                                                class="ph ph-arrows-down-up"
+                                                style="font-size: 0.8em; color: var(--text-muted);"></i></th>
+                                        <th style="text-align: center;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="opex-list">
+                                    <!-- Injected via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profit Analysis Page -->
+            <div id="profit-page" class="content-area">
+
+                <div style="display: flex; gap: 10px; margin-bottom: 24px;">
+                    <button class="btn btn-primary" id="btn-profit-mode-detailed"
+                        onclick="window.app.profit.setMode('detailed')">By Product (Detailed)</button>
+                    <button class="btn btn-secondary" id="btn-profit-mode-omzet"
+                        onclick="window.app.profit.setMode('omzet')">Quick Omzet Mode</button>
+                </div>
+
+                <!-- Empty State -->
+                <div id="profit-empty-state" class="empty-state" style="display: none;">
+                    <div class="empty-state-content">
+                        <i class="ph ph-chart-line-up" style="font-size: 4rem; color: var(--primary-color);"></i>
+                        <h2 style="margin: 16px 0 8px;">Profit Analysis</h2>
+                        <p style="color: var(--text-secondary); margin-bottom: 32px;" id="profit-empty-msg">Add Recipes
+                            and Operational Expenses to unlock accurate profit projections.</p>
+                    </div>
+                </div>
+
+                <div id="profit-main-view">
+
+                    <div class="dashboard-stats-grid" style="grid-template-columns: 2fr 1fr; margin-bottom: 24px;">
+                        <!-- Input Section -->
+                        <div class="card" style="display: flex; flex-direction: column; gap: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <h3 style="margin: 0;">Revenue Input</h3>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <input type="file" id="loyverse-upload-input" accept=".csv" style="display: none;"
+                                        onchange="window.app.profit.handleLoyverseUpload(event)">
+                                    <button class="btn btn-secondary"
+                                        onclick="document.getElementById('loyverse-upload-input').click()"
+                                        title="Import Loyverse Sales"
+                                        style="padding: 4px 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;"><i
+                                            class="ph ph-upload-simple"></i> Loyverse CSV</button>
+                                    <div
+                                        style="width: 1px; height: 20px; background: var(--border-color); margin: 0 4px;">
+                                    </div>
+                                    <button class="btn btn-primary" id="btn-period-daily" style="padding: 4px 12px;"
+                                        onclick="window.app.profit.setPeriod('Daily')">Daily</button>
+                                    <button class="btn btn-secondary" id="btn-period-monthly" style="padding: 4px 12px;"
+                                        onclick="window.app.profit.setPeriod('Monthly')">Monthly</button>
+                                </div>
+                            </div>
+
+                            <!-- Detailed Mode Input -->
+                            <div id="profit-view-detailed">
+                                <p style="color: var(--text-secondary); font-size: 0.9rem;">Masukkan estimasi penjualan
+                                    untuk tiap menu (<span class="profit-period-label">Daily</span>).</p>
+                                <div id="profit-projections-list"
+                                    style="display: flex; flex-direction: column; gap: 12px; max-height: 400px; overflow-y: auto;">
+                                    <!-- Injected via JS -->
+                                </div>
+                            </div>
+
+                            <!-- Omzet Mode Input -->
+                            <div id="profit-view-omzet" style="display:none;">
+                                <p style="color: var(--text-secondary); font-size: 0.9rem;">Masukkan estimasi total
+                                    omzet (pendapatan kotor) tanpa perlu merinci per produk.</p>
+
+                                <div style="margin-bottom: 16px;">
+                                    <label style="display:block; margin-bottom:5px; font-weight:500;">Total Omzet (<span
+                                            class="profit-period-label">Daily</span>)</label>
+                                    <input type="text" id="profit-quick-omzet" class="form-control"
+                                        placeholder="Contoh: 15.000.000"
+                                        oninput="window.app.formatter.formatInput(this); window.app.profit.calculateTotal();">
+                                </div>
+
+                                <div style="margin-bottom: 16px;">
+                                    <label style="display:block; margin-bottom:5px; font-weight:500;">Estimasi Average
+                                        Food Cost (%)</label>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <input type="number" id="profit-quick-fc" class="form-control"
+                                            style="width: 100px;" value="30" min="1" max="100"
+                                            oninput="window.app.profit.calculateTotal();">
+                                        <span style="font-weight: 600;">%</span>
+                                    </div>
+                                    <small style="color: var(--success-color); display:block; margin-top: 4px;"
+                                        id="profit-quick-fc-helper">Auto-calculated from Recipe module</small>
+                                </div>
+                            </div>
+
+                            <!-- Scenario Simulation -->
+                            <div
+                                style="border-top: 1px solid var(--border-color); padding-top: 16px; margin-top: auto;">
+                                <h4 style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px;"><i
+                                        class="ph ph-sliders"></i> Scenario Simulation</h4>
+                                <div style="display: flex; flex-direction: column; gap: 12px;">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <span
+                                            style="width: 100px; font-size: 0.85rem; color: var(--text-secondary);">Revenue</span>
+                                        <input type="range" id="sim-revenue" min="50" max="200" value="100"
+                                            style="flex: 1;" oninput="window.app.profit.simulate()">
+                                        <span id="sim-revenue-val"
+                                            style="width: 50px; text-align: right; font-weight: 600; font-size: 0.85rem;">100%</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <span
+                                            style="width: 100px; font-size: 0.85rem; color: var(--text-secondary);">Food
+                                            Cost</span>
+                                        <input type="range" id="sim-fc" min="50" max="150" value="100" style="flex: 1;"
+                                            oninput="window.app.profit.simulate()">
+                                        <span id="sim-fc-val"
+                                            style="width: 50px; text-align: right; font-weight: 600; font-size: 0.85rem;">100%</span>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <span
+                                            style="width: 100px; font-size: 0.85rem; color: var(--text-secondary);">OPEX</span>
+                                        <input type="range" id="sim-opex" min="50" max="150" value="100"
+                                            style="flex: 1;" oninput="window.app.profit.simulate()">
+                                        <span id="sim-opex-val"
+                                            style="width: 50px; text-align: right; font-weight: 600; font-size: 0.85rem;">100%</span>
+                                    </div>
+                                    <button class="btn btn-secondary"
+                                        style="align-self: flex-end; padding: 4px 12px; font-size: 0.85rem;"
+                                        onclick="window.app.profit.resetSimulation()">Reset Simulation</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Financial Summary -->
+                        <div class="card" style="display: flex; flex-direction: column;">
+                            <h3
+                                style="margin-bottom: 20px; text-align: center; border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
+                                Financial Summary (<span class="profit-period-label">Daily</span>)
+                            </h3>
+
+                            <div
+                                style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem;">
+                                <span>Total Revenue</span>
+                                <strong id="profit-revenue" style="color: var(--primary-color);">Rp 0</strong>
+                            </div>
+                            <div
+                                style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem; color: var(--text-secondary);">
+                                <span>Average Food Cost</span>
+                                <span id="profit-fc-pct">0%</span>
+                            </div>
+                            <div
+                                style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem; color: var(--text-secondary);">
+                                <span>Total COGS</span>
+                                <span id="profit-cogs">- Rp 0</span>
+                            </div>
+
+                            <div style="border-top: 1px dashed var(--border-color); margin: 16px 0;"></div>
+
+                            <div
+                                style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 1.05rem; font-weight: 600;">
+                                <span>Gross Profit</span>
+                                <span id="profit-gross">Rp 0</span>
+                            </div>
+                            <div
+                                style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem; color: var(--danger-color);">
+                                <span>Allocated OPEX</span>
+                                <span id="profit-opex">- Rp 0</span>
+                            </div>
+
+                            <div style="border-top: 2px solid var(--border-color); margin: 16px 0;"></div>
+
+                            <div
+                                style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 1.2rem; font-weight: 700;">
+                                <span>NET PROFIT</span>
+                                <span id="profit-net">Rp 0</span>
+                            </div>
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                                <span style="font-size: 0.85rem; color: var(--text-secondary);">Net Margin</span>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-weight: 600; font-size: 1.1rem;" id="profit-margin-pct">0%</span>
+                                    <span class="badge" id="profit-health-badge">Status</span>
+                                </div>
+                            </div>
+
+                            <!-- Break Even Section -->
+                            <div id="profit-breakeven-container"
+                                style="margin-top: auto; padding: 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                                <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 4px;">Break
+                                    Even Target (<span class="profit-period-label">Daily</span>)</div>
+                                <div style="display: flex; align-items: baseline; gap: 6px;">
+                                    <span style="font-size: 1.2rem; font-weight: 700; color: var(--primary-color);"
+                                        id="profit-breakeven-cups">0</span>
+                                    <span style="font-size: 0.85rem; color: var(--text-secondary);">Cups Required</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts & Insights -->
+                    <div class="dashboard-hero-grid" style="margin-bottom: 24px;">
+                        <div class="card">
+                            <h3 style="margin-bottom: 16px;">Revenue vs Costs</h3>
+                            <div style="height: 250px; position: relative;">
+                                <canvas id="profitWaterfallChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="card insights-card">
+                            <h3 style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;"><i
+                                    class="ph ph-lightbulb" style="color: var(--warning-color);"></i> Business Insights
+                            </h3>
+                            <ul class="insights-list" id="profit-insights-list">
+                                <!-- Injected by JS -->
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Product Analysis Table -->
+                    <div class="card" id="profit-table-container">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <h3>Product Analysis</h3>
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table class="excel-table">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align: left;">Product</th>
+                                        <th style="text-align: right;">Selling Price</th>
+                                        <th style="text-align: right;">COGS</th>
+                                        <th style="text-align: right;">Gross Profit</th>
+                                        <th style="text-align: right;">Allocated OPEX</th>
+                                        <th style="text-align: right;">Net Profit</th>
+                                        <th style="text-align: right;">Margin</th>
+                                        <th style="text-align: right;">Food Cost</th>
+                                        <th style="text-align: center;">Status</th>
+                                        <th style="text-align: left;">Recommendation</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="profit-detailed-table-body">
+                                    <!-- Injected via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Sales History Page -->
+            <div id="sales-page" class="content-area">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 24px; align-items: center;">
+                    <h2 style="margin:0;">Sales History (Manual Input)</h2>
+                    <button class="btn btn-primary" onclick="window.app.sales.openModal()"><i
+                            class="ph ph-plus-circle"></i> Add Sales Record</button>
+                </div>
+
+                <!-- Sales Chart -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <h3 style="margin-bottom: 16px;">Revenue vs Net Profit Trend</h3>
+                    <div style="height: 300px; position: relative;">
+                        <canvas id="salesHistoryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Sales Table -->
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                        <h3 style="margin: 0;">Riwayat Penjualan</h3>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <select id="sales-filter-type" class="form-control" style="width: auto; min-width: 140px;" onchange="window.app.sales.onFilterChange()">
+                                <option value="today">Hari Ini</option>
+                                <option value="date">Tanggal Tertentu</option>
+                                <option value="month">Bulan Tertentu</option>
+                                <option value="all" selected>All Time</option>
+                            </select>
+                            <input type="date" id="sales-filter-date" class="form-control" style="display: none; width: auto;" onchange="window.app.sales.render()">
+                            <input type="month" id="sales-filter-month" class="form-control" style="display: none; width: auto;" onchange="window.app.sales.render()">
+                        </div>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="excel-table">
+                            <thead>
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th style="text-align:right;">
+                                        Omzet Kanovi
+                                        <div style="font-size: 0.8em; font-weight: normal; color: var(--text-muted); text-transform: none;">Dari Loyverse</div>
+                                    </th>
+                                    <th style="text-align:right;">
+                                        Omzet Restart
+                                        <div style="font-size: 0.8em; font-weight: normal; color: var(--text-muted); text-transform: none;">Jalur Kerja Sama</div>
+                                    </th>
+                                    <th style="text-align:right; background: rgba(51, 154, 240, 0.05);">
+                                        Total Omzet
+                                        <div style="font-size: 0.8em; font-weight: normal; color: var(--text-muted); text-transform: none;">Kanovi + Restart</div>
+                                    </th>
+                                    <th style="text-align:right;">
+                                        Payment
+                                        <div style="font-size: 0.8em; font-weight: normal; color: var(--text-muted); text-transform: none;">Cash & QR Kanovi</div>
+                                    </th>
+                                    <th style="text-align:right;">
+                                        COGS
+                                        <div style="font-size: 0.8em; font-weight: normal; color: var(--text-muted); text-transform: none;">Modal Bahan Baku</div>
+                                    </th>
+                                    <th style="text-align:right;">
+                                        Gross Profit
+                                        <div style="font-size: 0.8em; font-weight: normal; color: var(--text-muted); text-transform: none;">Total Omzet - COGS</div>
+                                    </th>
+                                    <th style="text-align:right;">
+                                        Rincian Restart
+                                        <div style="font-size: 0.8em; font-weight: normal; color: var(--text-muted); text-transform: none;">Fee 25% & Setoran 75%</div>
+                                    </th>
+                                    <th style="text-align:right;">
+                                        Total Expenses
+                                        <div style="font-size: 0.8em; font-weight: normal; color: var(--text-muted); text-transform: none;">OPEX Harian + Petty Cash</div>
+                                    </th>
+                                    <th style="text-align:right; background: rgba(64, 192, 87, 0.05);">
+                                        Net Profit
+                                        <div style="font-size: 0.8em; font-weight: normal; color: var(--text-muted); text-transform: none;">Laba Bersih Akhir</div>
+                                    </th>
+                                    <th style="text-align:center;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sales-table-body">
+                                <!-- Data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Cash Flow Page -->
+            <div id="cashflow-page" class="content-area">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 24px; align-items: center;">
+                    <h2 style="margin:0;">Buku Kas & Arus Dana</h2>
+                    <button class="btn btn-primary" onclick="window.app.cashflow.openModal()"><i class="ph ph-plus-circle"></i> Catat Pengeluaran</button>
+                </div>
+
+                <div class="metrics-grid" style="margin-bottom: 24px; grid-template-columns: repeat(2, 1fr);">
+                    <div class="card metric-card" style="border-left: 4px solid var(--success-color);">
+                        <span class="metric-title">Saldo Laci Kasir (Cash)</span>
+                        <span class="metric-value" id="cashflow-bal-cash" style="color: var(--success-color);">Rp 0</span>
+                        <span style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">Uang tunai fisik saat ini</span>
+                    </div>
+                    <div class="card metric-card" style="border-left: 4px solid var(--info-color);">
+                        <span class="metric-title">Saldo Mutasi Bank (QR/Transfer)</span>
+                        <span class="metric-value" id="cashflow-bal-qr" style="color: var(--info-color);">Rp 0</span>
+                        <span style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">Uang digital di rekening</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                        <h3 style="margin: 0;">Riwayat Transaksi</h3>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <select id="cashflow-filter-type" class="form-control" style="width: auto; min-width: 140px;" onchange="window.app.cashflow.onFilterChange()">
+                                <option value="today">Hari Ini</option>
+                                <option value="date">Tanggal Tertentu</option>
+                                <option value="month">Bulan Tertentu</option>
+                                <option value="all" selected>All Time</option>
+                            </select>
+                            <input type="date" id="cashflow-filter-date" class="form-control" style="display: none; width: auto;" onchange="window.app.cashflow.render()">
+                            <input type="month" id="cashflow-filter-month" class="form-control" style="display: none; width: auto;" onchange="window.app.cashflow.render()">
+                        </div>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="excel-table">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left; width: 15%;">Tanggal</th>
+                                    <th style="text-align: left;">Keterangan</th>
+                                    <th style="text-align: center; width: 15%;">Metode</th>
+                                    <th style="text-align: right; width: 20%;">Nominal (Rp)</th>
+                                    <th style="text-align: center; width: 10%;">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cashflow-table-body">
+                                <!-- Injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Global Modal Container -->
+    <div class="modal-overlay" id="global-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Modal Title</h3>
+                <button class="modal-close" onclick="window.app.modal.close()"><i class="ph ph-x"></i></button>
+            </div>
+            <div id="modal-body">
+                <!-- Content injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Print All Container -->
+    <div id="print-all-container" style="display: none;"></div>
+
+    <!-- Global Datalists -->
+    <datalist id="global-ingredients-list"></datalist>
+
+    <!-- Scripts (Utilities, Components, Pages) -->
+    <!-- Placeholders for now, will create next -->
+    <script src="js/utils/storage.js?v=4"></script>
+    <script src="js/utils/formatter.js?v=4"></script>
+    <script src="js/utils/calculator.js?v=4"></script>
+    <script src="js/utils/finance.js?v=4"></script>
+
+    <script src="js/components/modal.js?v=4"></script>
+    <script src="js/components/toast.js?v=4"></script>
+
+    <script src="js/pages/ingredients.js?v=4"></script>
+    <script src="js/pages/recipe.js?v=4"></script>
+    <script src="js/pages/dashboard.js?v=4"></script>
+    <script src="js/pages/pricing.js?v=4"></script>
+    <script src="js/pages/opex.js?v=4"></script>
+    <script src="js/pages/profit.js?v=4"></script>
+    <script src="js/pages/sales.js?v=4"></script>
+    <script src="js/pages/cashflow.js?v=4"></script>
+
+    <script src="js/app.js?v=4"></script>
+</body>
+
+</html>

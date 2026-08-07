@@ -1,0 +1,97 @@
+// app.js - Main Application Entry Point
+
+const App = {
+    init() {
+        console.log("CoffeeShop Cost Management initialized");
+        this.initTheme();
+        this.initRouting();
+        
+        // Setup initial dummy data if storage is empty
+        this.setupDummyData();
+        
+        // Initialize sub-modules if they exist
+        if (window.app && window.app.dashboard) window.app.dashboard.init();
+        if (window.app && window.app.ingredients) window.app.ingredients.init();
+        if (window.app && window.app.recipes) window.app.recipes.init();
+        if (window.app && window.app.pricing) window.app.pricing.init();
+        if (window.app && window.app.opex) window.app.opex.init();
+        if (window.app && window.app.profit) window.app.profit.init();
+        if (window.app && window.app.sales) window.app.sales.init();
+        if (window.app && window.app.cashflow) window.app.cashflow.init();
+    },
+
+    initTheme() {
+        const themeBtn = document.getElementById('themeToggle');
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        
+        themeBtn.addEventListener('click', () => {
+            const theme = document.documentElement.getAttribute('data-theme');
+            const newTheme = theme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+    },
+
+    initRouting() {
+        const navItems = document.querySelectorAll('.nav-item');
+        const contentAreas = document.querySelectorAll('.content-area');
+        const pageTitle = document.getElementById('topPageTitle');
+
+        navItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Update active nav
+                navItems.forEach(nav => nav.classList.remove('active'));
+                item.classList.add('active');
+
+                // Update title
+                pageTitle.textContent = item.textContent.trim();
+
+                // Show target page
+                const targetPage = item.getAttribute('data-page');
+                if (!targetPage) return; // Prevent hiding content for toggle buttons
+
+                contentAreas.forEach(area => {
+                    area.classList.remove('active');
+                });
+                const targetArea = document.getElementById(`${targetPage}-page`);
+                if(targetArea) {
+                    targetArea.classList.add('active');
+                }
+                
+                // Trigger page specific re-renders
+                if (targetPage === 'dashboard' && window.app && window.app.dashboard) {
+                    window.app.dashboard.render();
+                }
+                if (targetPage === 'pricing' && window.app && window.app.pricing) {
+                    window.app.pricing.render();
+                }
+                if (targetPage === 'opex' && window.app && window.app.opex) {
+                    window.app.opex.render();
+                }
+                if (targetPage === 'profit' && window.app && window.app.profit) {
+                    window.app.profit.render();
+                }
+                if (targetPage === 'sales' && window.app && window.app.sales) {
+                    window.app.sales.render();
+                }
+            });
+        });
+    },
+    
+    setupDummyData() {
+        // We will implement this in the storage utility, but call it here
+        if (window.app && window.app.storage && window.app.storage.isFirstRun()) {
+            window.app.storage.seedDummyData();
+        }
+    }
+};
+
+// Global namespace for modules to attach to
+window.app = window.app || {};
+
+document.addEventListener('DOMContentLoaded', () => {
+    App.init();
+});

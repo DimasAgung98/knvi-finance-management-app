@@ -1,0 +1,10 @@
+{
+  "name": "kanovi-finance-management",
+  "version": "1.0.0",
+  "description": "Kanovi Finance and Accounting Management",
+  "main": "index.html",
+  "scripts": {
+    "build": "node build-config.js"
+  },
+  "dependencies": {}
+}
