@@ -70,6 +70,10 @@ window.app.menu = {
     },
 
     generateDescription(recipe) {
+        if (recipe.description && recipe.description.trim() !== '') {
+            return recipe.description;
+        }
+        
         if (!recipe.ingredients || recipe.ingredients.length === 0) return 'Belum ada komposisi';
 
         // Filter out packaging

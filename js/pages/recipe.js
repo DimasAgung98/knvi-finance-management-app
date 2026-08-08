@@ -291,6 +291,8 @@ window.app.recipes = {
             const recipe = this.data.find(r => r.id === recipeId);
             if (recipe) {
                 nameInput.value = recipe.name;
+                const descInput = document.getElementById('builder-recipe-description');
+                if (descInput) descInput.value = recipe.description || '';
                 // Deep copy ingredients and sort them alphabetically
                 this.builderRows = JSON.parse(JSON.stringify(recipe.ingredients))
                     .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
@@ -322,6 +324,9 @@ window.app.recipes = {
                 let catHtml = '<option value="">-- No Category --</option>';
                 this.recipeTypes.forEach(t => catHtml += `<option value="${t.name}">${t.name}</option>`);
                 catSelect.innerHTML = catHtml;
+                nameInput.value = '';
+                const descInput = document.getElementById('builder-recipe-description');
+                if (descInput) descInput.value = '';
                 catSelect.value = '';
             }
 
@@ -577,10 +582,14 @@ window.app.recipes = {
         const catSelect = document.getElementById('builder-recipe-category');
         const category = catSelect ? catSelect.value : '';
 
+        const descInput = document.getElementById('builder-recipe-description');
+        const description = descInput ? descInput.value.trim() : '';
+
         const recipeToSave = {
             id: this.editId || window.app.storage.generateId('rec'),
             name,
             category,
+            description,
             ingredients: validIngredients,
             totalCost, // final cogs with buffer
             rawCogs, // without buffer
