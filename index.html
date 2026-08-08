@@ -427,8 +427,10 @@
                             <button class="btn btn-secondary" onclick="window.app.recipes.printAllCheatSheets()" title="Print All SOP"><i
                                     class="ph ph-printer"></i> Print</button>
                             <button class="btn btn-secondary" onclick="window.app.recipes.openCategoryManager()"><i class="ph ph-list"></i> Kategori</button>
-                            <button class="btn btn-primary" onclick="window.app.recipes.openBuilder()"><i
-                                    class="ph ph-plus"></i> Add Recipe</button>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-secondary" onclick="window.app.recipes.openBulkUpsizeModal()"><i class="ph ph-stack"></i> Bulk Upsize</button>
+                                <button class="btn btn-primary" onclick="window.app.recipes.openBuilder()"><i class="ph ph-plus"></i> Add Recipe</button>
+                            </div>
                         </div>
                     </div>
                     <!-- CATEGORY FILTER CHIPS -->

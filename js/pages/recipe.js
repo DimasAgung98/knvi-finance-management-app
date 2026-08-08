@@ -449,6 +449,202 @@ window.app.recipes = {
         if (window.app.dashboard) window.app.dashboard.render();
     },
 
+    // --- Bulk Upsize Logic ---
+    openBulkUpsizeModal() {
+        if (!this.recipeTypes || this.recipeTypes.length === 0) {
+            window.app.toast.show('Belum ada kategori yang dibuat.', 'error');
+            return;
+        }
+
+        const allIngredients = window.app.storage.getIngredients();
+        const packagingItems = allIngredients.filter(i => (i.category || '').toLowerCase() === 'packaging' || (i.category || '').toLowerCase() === 'kemasan');
+
+        let catOptionsHtml = '';
+        this.recipeTypes.forEach(t => {
+            catOptionsHtml += `<option value="${t.name}">${t.name}</option>`;
+        });
+
+        let packOptionsHtml = '<option value="">-- Jangan Ganti Kemasan --</option>';
+        packagingItems.forEach(p => {
+            packOptionsHtml += `<option value="${p.id}">${p.name}</option>`;
+        });
+
+        const html = `
+            <div style="margin-bottom: 16px;">
+                <p style="color: var(--text-secondary); margin: 0 0 16px 0; font-size: 0.9em;">
+                    Sistem akan menyapu bersih semua resep di kategori yang dipilih dan membuatkan versi Upsize-nya secara otomatis.
+                </p>
+                <form id="bulk-upsize-form" onsubmit="window.app.recipes.generateBulkUpsize(event)">
+                    <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+                        
+                        <div>
+                            <label style="display: block; font-weight: 500; margin-bottom: 4px; font-size: 0.9em;">1. Pilih Kategori Target</label>
+                            <select class="form-control" id="bulk-target-category" required>
+                                ${catOptionsHtml}
+                            </select>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div>
+                                <label style="display: block; font-weight: 500; margin-bottom: 4px; font-size: 0.9em;">Tambah Cairan (Kopi/Susu/Air)</label>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-weight: 500;">+</span>
+                                    <input type="number" step="0.01" class="form-control" id="bulk-add-liquid" value="50" required>
+                                    <span style="font-size: 0.85em; color: var(--text-secondary);">ml</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label style="display: block; font-weight: 500; margin-bottom: 4px; font-size: 0.9em;">Tambah Sirup/Bubuk</label>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-weight: 500;">+</span>
+                                    <input type="number" step="0.01" class="form-control" id="bulk-add-syrup" value="5" required>
+                                    <span style="font-size: 0.85em; color: var(--text-secondary);">ml/gr</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label style="display: block; font-weight: 500; margin-bottom: 4px; font-size: 0.9em;">2. Tambahan Harga Jual</label>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-weight: 500;">+ Rp</span>
+                                <input type="number" class="form-control" id="bulk-add-price" value="5000" required>
+                            </div>
+                            <small style="color: var(--text-muted); display: block; margin-top: 4px;">Harga akhir resep akan ditambahkan nominal ini.</small>
+                        </div>
+
+                        <div>
+                            <label style="display: block; font-weight: 500; margin-bottom: 4px; font-size: 0.9em;">3. Ganti Kemasan Otomatis</label>
+                            <div style="display: flex; align-items: center; gap: 8px; background: var(--bg-main); padding: 8px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                                <select class="form-control" id="bulk-swap-from" style="flex: 1;">
+                                    <option value="">-- Pilih Kemasan Asal --</option>
+                                    ${packagingItems.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+                                </select>
+                                <i class="ph ph-arrow-right" style="color: var(--text-muted);"></i>
+                                <select class="form-control" id="bulk-swap-to" style="flex: 1;">
+                                    ${packOptionsHtml}
+                                </select>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                        <button type="button" class="btn btn-secondary" onclick="window.app.modal.close()">Batal</button>
+                        <button type="submit" class="btn btn-primary"><i class="ph ph-stack"></i> Generate Massal</button>
+                    </div>
+                </form>
+            </div>
+        `;
+        window.app.modal.open('Bulk Upsize Generator', html);
+    },
+
+    generateBulkUpsize(event) {
+        event.preventDefault();
+        
+        const targetCategory = document.getElementById('bulk-target-category').value;
+        const addLiquid = parseFloat(document.getElementById('bulk-add-liquid').value) || 0;
+        const addSyrup = parseFloat(document.getElementById('bulk-add-syrup').value) || 0;
+        const addPrice = parseFloat(document.getElementById('bulk-add-price').value) || 0;
+        
+        const swapFromId = document.getElementById('bulk-swap-from').value;
+        const swapToId = document.getElementById('bulk-swap-to').value;
+
+        // Find applicable recipes
+        const applicableRecipes = this.data.filter(r => 
+            r.category === targetCategory && 
+            !r.name.includes('(Upsize)')
+        );
+
+        if (applicableRecipes.length === 0) {
+            window.app.toast.show('Tidak ada resep di kategori ini yang bisa di-upsize.', 'error');
+            return;
+        }
+
+        const dbIngredients = window.app.storage.getIngredients();
+        const newRecipes = [];
+        let count = 0;
+
+        applicableRecipes.forEach(originalRecipe => {
+            const newRecipe = JSON.parse(JSON.stringify(originalRecipe));
+            newRecipe.id = window.app.storage.generateId('rec');
+            newRecipe.name = newRecipe.name + ' (Upsize)';
+            
+            let newRawCogs = 0;
+
+            if (newRecipe.ingredients) {
+                newRecipe.ingredients.forEach(ing => {
+                    const ingName = (ing.name || '').toLowerCase();
+                    const ingCat = (ing.category || '').toLowerCase();
+                    const ingUnit = (ing.buyUnit || '').toLowerCase();
+
+                    // Swap packaging check
+                    if (swapFromId && swapToId && ing.id === swapFromId) {
+                        const targetPackaging = dbIngredients.find(i => i.id === swapToId);
+                        if (targetPackaging) {
+                            ing.id = targetPackaging.id;
+                            ing.name = targetPackaging.name;
+                            ing.category = targetPackaging.category;
+                            ing.buyUnit = targetPackaging.unit;
+                            ing.buyPrice = targetPackaging.buyPrice;
+                            ing.buyQty = targetPackaging.qty;
+                        }
+                    } else if (ingCat !== 'packaging' && ingCat !== 'kemasan') {
+                        // Apply additions
+                        if (
+                            ingName.includes('sirup') || ingName.includes('syrup') || 
+                            ingName.includes('powder') || ingName.includes('bubuk') || 
+                            ingCat.includes('syrup') || ingCat.includes('powder') || ingUnit === 'gr' || ingUnit === 'gram'
+                        ) {
+                            ing.usage += addSyrup;
+                        } else if (
+                            ingName.includes('susu') || ingName.includes('milk') || 
+                            ingName.includes('kopi') || ingName.includes('coffee') || 
+                            ingName.includes('espresso') || ingName.includes('air') || 
+                            ingName.includes('water') || ingCat.includes('dairy') || ingCat.includes('coffee') || ingUnit === 'ml'
+                        ) {
+                            ing.usage += addLiquid;
+                        }
+                    }
+
+                    // Recalculate cost
+                    const latestIng = dbIngredients.find(i => i.id === ing.id);
+                    if (latestIng && latestIng.buyPrice > 0 && latestIng.qty > 0 && ing.usage > 0) {
+                        ing.cost = (latestIng.buyPrice / latestIng.qty) * ing.usage;
+                    } else {
+                        ing.cost = 0;
+                    }
+                    newRawCogs += ing.cost;
+                });
+            }
+
+            newRecipe.rawCogs = newRawCogs;
+            const bufferPct = newRecipe.bufferPct !== undefined ? newRecipe.bufferPct : 10;
+            const bufferAmount = newRawCogs * (bufferPct / 100);
+            newRecipe.totalCost = newRawCogs + bufferAmount;
+            newRecipe.suggestedPrice = window.app.calculator.recommendedPrice(newRecipe.totalCost);
+            
+            if (originalRecipe.finalPrice && originalRecipe.finalPrice > 0) {
+                newRecipe.finalPrice = originalRecipe.finalPrice + addPrice;
+            } else {
+                newRecipe.finalPrice = 0;
+            }
+
+            newRecipes.push(newRecipe);
+            count++;
+        });
+
+        // Add to main array and save
+        this.data.push(...newRecipes);
+        window.app.storage.saveRecipes(this.data);
+        
+        window.app.modal.close();
+        window.app.toast.show(`Berhasil membuat ${count} resep Upsize!`);
+        this.render();
+        
+        // Cascade to menu and dashboard
+        if (window.app.menu) window.app.menu.render();
+        if (window.app.dashboard) window.app.dashboard.render();
+    },
+
     // --- Excel-Like Builder Logic ---
 
     openBuilder(recipeId = null) {
