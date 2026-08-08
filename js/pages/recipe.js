@@ -335,10 +335,12 @@ window.app.recipes = {
                     ((ingUnit === 'gr' || ingUnit === 'gram') && !isIce)
                 ) {
                     defaultAddition = 5;
+                } else if (ingName.includes('espresso') || ingName.includes('shot')) {
+                    defaultAddition = 10;
                 } else if (
                     ingName.includes('susu') || ingName.includes('milk') || 
                     ingName.includes('kopi') || ingName.includes('coffee') || 
-                    ingName.includes('espresso') || ingName.includes('air') || 
+                    ingName.includes('air') || 
                     ingName.includes('water') || isIce || 
                     ingCat.includes('dairy') || ingCat.includes('coffee') || ingUnit === 'ml'
                 ) {
@@ -488,17 +490,25 @@ window.app.recipes = {
                             </select>
                         </div>
                         
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
                             <div>
-                                <label style="display: block; font-weight: 500; margin-bottom: 4px; font-size: 0.9em;">Tambah Cairan (Kopi/Susu/Air)</label>
+                                <label style="display: block; font-weight: 500; margin-bottom: 4px; font-size: 0.9em;">Tambah Cairan Dasar</label>
                                 <div style="display: flex; align-items: center; gap: 8px;">
                                     <span style="font-weight: 500;">+</span>
-                                    <input type="number" step="0.01" class="form-control" id="bulk-add-liquid" value="50" required>
+                                    <input type="number" step="0.01" class="form-control" id="bulk-add-liquid" value="50" required title="Susu/Air/Es">
                                     <span style="font-size: 0.85em; color: var(--text-secondary);">ml</span>
                                 </div>
                             </div>
                             <div>
-                                <label style="display: block; font-weight: 500; margin-bottom: 4px; font-size: 0.9em;">Tambah Sirup/Bubuk</label>
+                                <label style="display: block; font-weight: 500; margin-bottom: 4px; font-size: 0.9em;">Tambah Espresso</label>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-weight: 500;">+</span>
+                                    <input type="number" step="0.01" class="form-control" id="bulk-add-espresso" value="10" required>
+                                    <span style="font-size: 0.85em; color: var(--text-secondary);">ml</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label style="display: block; font-weight: 500; margin-bottom: 4px; font-size: 0.9em;">Tambah Sirup</label>
                                 <div style="display: flex; align-items: center; gap: 8px;">
                                     <span style="font-weight: 500;">+</span>
                                     <input type="number" step="0.01" class="form-control" id="bulk-add-syrup" value="5" required>
@@ -546,6 +556,7 @@ window.app.recipes = {
         
         const targetCategory = document.getElementById('bulk-target-category').value;
         const addLiquid = parseFloat(document.getElementById('bulk-add-liquid').value) || 0;
+        const addEspresso = parseFloat(document.getElementById('bulk-add-espresso').value) || 0;
         const addSyrup = parseFloat(document.getElementById('bulk-add-syrup').value) || 0;
         const addPrice = parseFloat(document.getElementById('bulk-add-price').value) || 0;
         
@@ -601,10 +612,12 @@ window.app.recipes = {
                             ((ingUnit === 'gr' || ingUnit === 'gram') && !isIce)
                         ) {
                             ing.usage += addSyrup;
+                        } else if (ingName.includes('espresso') || ingName.includes('shot')) {
+                            ing.usage += addEspresso;
                         } else if (
                             ingName.includes('susu') || ingName.includes('milk') || 
                             ingName.includes('kopi') || ingName.includes('coffee') || 
-                            ingName.includes('espresso') || ingName.includes('air') || 
+                            ingName.includes('air') || 
                             ingName.includes('water') || isIce || 
                             ingCat.includes('dairy') || ingCat.includes('coffee') || ingUnit === 'ml'
                         ) {
