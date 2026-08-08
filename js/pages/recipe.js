@@ -292,42 +292,71 @@ window.app.recipes = {
         `;
 
         const ingredientsList = recipe.ingredients || [];
+        const allIngredients = window.app.storage.getIngredients();
+        const packagingItems = allIngredients.filter(i => (i.category || '').toLowerCase() === 'packaging' || (i.category || '').toLowerCase() === 'kemasan');
         
         ingredientsList.forEach((ing, index) => {
             const ingName = (ing.name || '').toLowerCase();
             const ingCat = (ing.category || '').toLowerCase();
             const ingUnit = (ing.buyUnit || '').toLowerCase();
-            let defaultAddition = 0;
             
-            // Heuristic for default additions
-            if (ingCat === 'packaging' || ingCat === 'kemasan') {
-                defaultAddition = 0; // Don't upsize packaging sizes
-            } else if (
-                ingName.includes('sirup') || ingName.includes('syrup') || 
-                ingName.includes('powder') || ingName.includes('bubuk') || 
-                ingCat.includes('syrup') || ingCat.includes('powder') || ingUnit === 'gr' || ingUnit === 'gram'
-            ) {
-                defaultAddition = 5;
-            } else if (
-                ingName.includes('susu') || ingName.includes('milk') || 
-                ingName.includes('kopi') || ingName.includes('coffee') || 
-                ingName.includes('espresso') || ingName.includes('air') || 
-                ingName.includes('water') || ingCat.includes('dairy') || ingCat.includes('coffee') || ingUnit === 'ml'
-            ) {
-                defaultAddition = 50;
-            }
+            let isPackaging = ingCat === 'packaging' || ingCat === 'kemasan';
+            let rightSideHtml = '';
 
-            html += `
-                <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-main); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                    <div style="flex: 1; min-width: 0;">
-                        <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${ing.name}</div>
-                        <div style="font-size: 0.8em; color: var(--text-muted);">Asli: ${ing.usage} ${ing.buyUnit || ''}</div>
+            if (isPackaging) {
+                // Render Swap Packaging Dropdown
+                let optionsHtml = '';
+                packagingItems.forEach(p => {
+                    const isSelected = p.id === ing.id ? 'selected' : '';
+                    optionsHtml += `<option value="${p.id}" ${isSelected}>${p.name}</option>`;
+                });
+                // If original is not in packagingItems, add it as option
+                if (!packagingItems.find(p => p.id === ing.id)) {
+                    optionsHtml = `<option value="${ing.id}" selected>${ing.name}</option>` + optionsHtml;
+                }
+                
+                rightSideHtml = `
+                    <div style="display: flex; align-items: center; gap: 8px; width: 100%; max-width: 200px;">
+                        <i class="ph ph-arrows-left-right" style="color: var(--text-muted);"></i>
+                        <select class="form-control" id="upsize-swap-${index}" style="padding: 4px; font-size: 0.85em;">
+                            ${optionsHtml}
+                        </select>
                     </div>
+                `;
+            } else {
+                // Render normal number input
+                let defaultAddition = 0;
+                if (
+                    ingName.includes('sirup') || ingName.includes('syrup') || 
+                    ingName.includes('powder') || ingName.includes('bubuk') || 
+                    ingCat.includes('syrup') || ingCat.includes('powder') || ingUnit === 'gr' || ingUnit === 'gram'
+                ) {
+                    defaultAddition = 5;
+                } else if (
+                    ingName.includes('susu') || ingName.includes('milk') || 
+                    ingName.includes('kopi') || ingName.includes('coffee') || 
+                    ingName.includes('espresso') || ingName.includes('air') || 
+                    ingName.includes('water') || ingCat.includes('dairy') || ingCat.includes('coffee') || ingUnit === 'ml'
+                ) {
+                    defaultAddition = 50;
+                }
+
+                rightSideHtml = `
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span style="font-weight: 500;">+</span>
                         <input type="number" step="0.01" class="form-control" id="upsize-val-${index}" value="${defaultAddition}" style="width: 80px; text-align: center; padding: 4px;">
                         <span style="font-size: 0.85em; color: var(--text-secondary); width: 30px;">${ing.buyUnit || ''}</span>
                     </div>
+                `;
+            }
+
+            html += `
+                <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-main); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                    <div style="flex: 1; min-width: 0; margin-right: 8px;">
+                        <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${ing.name}</div>
+                        <div style="font-size: 0.8em; color: var(--text-muted);">Asli: ${ing.usage} ${ing.buyUnit || ''}</div>
+                    </div>
+                    ${rightSideHtml}
                 </div>
             `;
         });
@@ -361,12 +390,28 @@ window.app.recipes = {
 
         if (newRecipe.ingredients) {
             newRecipe.ingredients.forEach((ing, index) => {
+                const swapSelect = document.getElementById(`upsize-swap-${index}`);
                 const addInput = document.getElementById(`upsize-val-${index}`);
-                const addition = addInput ? parseFloat(addInput.value) || 0 : 0;
                 
-                ing.usage = parseFloat(ing.usage) + addition;
+                if (swapSelect) {
+                    const newIngId = swapSelect.value;
+                    if (newIngId && newIngId !== ing.id) {
+                        const newIng = dbIngredients.find(i => i.id === newIngId);
+                        if (newIng) {
+                            ing.id = newIng.id;
+                            ing.name = newIng.name;
+                            ing.category = newIng.category;
+                            ing.buyUnit = newIng.unit;
+                            ing.buyPrice = newIng.buyPrice;
+                            ing.buyQty = newIng.qty;
+                        }
+                    }
+                } else if (addInput) {
+                    const addition = parseFloat(addInput.value) || 0;
+                    ing.usage = parseFloat(ing.usage) + addition;
+                }
 
-                // Look up latest price
+                // Look up latest price based on possibly swapped ID
                 const latestIng = dbIngredients.find(i => i.id === ing.id);
                 if (latestIng && latestIng.buyPrice > 0 && latestIng.qty > 0 && ing.usage > 0) {
                     ing.cost = (latestIng.buyPrice / latestIng.qty) * ing.usage;
