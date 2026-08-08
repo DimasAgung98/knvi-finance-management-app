@@ -84,6 +84,10 @@
                     <i class="ph ph-notebook"></i> <span>Recipes</span>
                     <i class="ph ph-caret-right ml-auto"></i>
                 </a>
+                <a href="#" class="nav-item" data-page="menu">
+                    <i class="ph ph-book-open"></i> <span>Digital Menu</span>
+                    <i class="ph ph-caret-right ml-auto"></i>
+                </a>
 
                 <div class="sidebar-section-title">Finance & Accounting</div>
                 <a href="#" class="nav-item" data-page="pricing">
@@ -591,6 +595,23 @@
                     </div>
                 </div>
 
+            </div>
+
+            <!-- Digital Menu Page -->
+            <div id="menu-page" class="content-area">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;" class="no-print">
+                    <div>
+                        <h2 style="margin: 0;">Katalog Menu</h2>
+                        <p style="color: var(--text-secondary); margin: 4px 0 0;">Daftar menu otomatis berdasarkan resep Anda.</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-secondary" onclick="window.print()" title="Print / Export to PDF"><i class="ph ph-printer"></i> Cetak / Simpan PDF</button>
+                    </div>
+                </div>
+                
+                <div id="digital-menu-container">
+                    <!-- Injected via JS -->
+                </div>
             </div>
 
             <!-- Pricing Page -->
@@ -1163,6 +1184,7 @@
 
     <script src="js/pages/ingredients.js?v=4"></script>
     <script src="js/pages/recipe.js?v=4"></script>
+    <script src="js/pages/menu.js?v=4"></script>
     <script src="js/pages/dashboard.js?v=4"></script>
     <script src="js/pages/pricing.js?v=4"></script>
     <script src="js/pages/opex.js?v=4"></script>

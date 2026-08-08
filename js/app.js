@@ -13,6 +13,7 @@ const App = {
         if (window.app && window.app.dashboard) window.app.dashboard.init();
         if (window.app && window.app.ingredients) window.app.ingredients.init();
         if (window.app && window.app.recipes) window.app.recipes.init();
+        if (window.app && window.app.menu) window.app.menu.init();
         if (window.app && window.app.pricing) window.app.pricing.init();
         if (window.app && window.app.opex) window.app.opex.init();
         if (window.app && window.app.profit) window.app.profit.init();
@@ -64,6 +65,9 @@ const App = {
                 // Trigger page specific re-renders
                 if (targetPage === 'dashboard' && window.app && window.app.dashboard) {
                     window.app.dashboard.render();
+                }
+                if (targetPage === 'menu' && window.app && window.app.menu) {
+                    window.app.menu.render();
                 }
                 if (targetPage === 'pricing' && window.app && window.app.pricing) {
                     window.app.pricing.render();
