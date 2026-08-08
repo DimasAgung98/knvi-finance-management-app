@@ -227,7 +227,7 @@ window.app.recipes = {
                 ${this.recipeTypes.length === 0 ? '<div style="text-align: center; color: var(--text-muted); padding: 12px;">Belum ada kategori</div>' : ''}
             </div>
         `;
-        window.app.modal.show('Kelola Kategori', html);
+        window.app.modal.open('Kelola Kategori', html);
     },
 
     addCategory() {
