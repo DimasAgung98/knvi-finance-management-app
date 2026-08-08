@@ -102,6 +102,7 @@ window.app.recipes = {
                     </div>
                     <div style="display: flex; gap: 8px;">
                         <button class="btn btn-secondary" onclick="event.stopPropagation(); window.app.recipes.duplicate('${item.id}')" style="padding: 6px 12px;"><i class="ph ph-copy"></i> Duplicate</button>
+                        <button class="btn btn-secondary" onclick="event.stopPropagation(); window.app.recipes.openUpsizeModal('${item.id}')" style="padding: 6px 12px; color: var(--primary-color);"><i class="ph ph-trend-up"></i> Upsize</button>
                         <button class="btn btn-secondary" onclick="event.stopPropagation(); window.app.recipes.openBuilder('${item.id}')" style="padding: 6px 12px;"><i class="ph ph-pencil-simple"></i> Edit</button>
                         <button class="btn btn-secondary" onclick="event.stopPropagation(); window.app.recipes.delete('${item.id}')" style="padding: 6px 12px; color: var(--danger-color);"><i class="ph ph-trash"></i></button>
                         <i class="ph ph-caret-down" id="caret-${item.id}" style="margin-left: 8px; transition: transform 0.2s;"></i>
@@ -274,6 +275,127 @@ window.app.recipes = {
                 window.app.toast.show('Kategori dihapus');
             }
         });
+    },
+
+    // --- Upsize Logic ---
+    openUpsizeModal(recipeId) {
+        const recipe = this.data.find(r => r.id === recipeId);
+        if (!recipe) return;
+
+        let html = `
+            <div style="margin-bottom: 16px;">
+                <p style="color: var(--text-secondary); margin: 0 0 16px 0; font-size: 0.9em;">
+                    Sistem akan membuat salinan resep <b>${recipe.name} (Upsize)</b>. Silakan periksa atau ubah angka tambahan takaran untuk tiap bahan di bawah ini:
+                </p>
+                <form id="upsize-form" onsubmit="window.app.recipes.generateUpsize(event, '${recipeId}')">
+                    <div style="max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">
+        `;
+
+        const ingredientsList = recipe.ingredients || [];
+        
+        ingredientsList.forEach((ing, index) => {
+            const ingName = (ing.name || '').toLowerCase();
+            const ingCat = (ing.category || '').toLowerCase();
+            const ingUnit = (ing.unit || '').toLowerCase();
+            let defaultAddition = 0;
+            
+            // Heuristic for default additions
+            if (ingCat === 'packaging' || ingCat === 'kemasan') {
+                defaultAddition = 0; // Don't upsize packaging sizes
+            } else if (
+                ingName.includes('sirup') || ingName.includes('syrup') || 
+                ingName.includes('powder') || ingName.includes('bubuk') || 
+                ingCat.includes('syrup') || ingCat.includes('powder') || ingUnit === 'gr' || ingUnit === 'gram'
+            ) {
+                defaultAddition = 5;
+            } else if (
+                ingName.includes('susu') || ingName.includes('milk') || 
+                ingName.includes('kopi') || ingName.includes('coffee') || 
+                ingName.includes('espresso') || ingName.includes('air') || 
+                ingName.includes('water') || ingCat.includes('dairy') || ingCat.includes('coffee') || ingUnit === 'ml'
+            ) {
+                defaultAddition = 50;
+            }
+
+            html += `
+                <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-main); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${ing.name}</div>
+                        <div style="font-size: 0.8em; color: var(--text-muted);">Asli: ${ing.usage} ${ing.unit}</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-weight: 500;">+</span>
+                        <input type="number" step="0.01" class="form-control" id="upsize-val-${index}" value="${defaultAddition}" style="width: 80px; text-align: center; padding: 4px;">
+                        <span style="font-size: 0.85em; color: var(--text-secondary); width: 30px;">${ing.unit}</span>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
+                        <button type="button" class="btn btn-secondary" onclick="window.app.modal.close()">Batal</button>
+                        <button type="submit" class="btn btn-primary"><i class="ph ph-magic-wand"></i> Generate Upsize</button>
+                    </div>
+                </form>
+            </div>
+        `;
+
+        window.app.modal.open(`Generate Upsize: ${recipe.name}`, html);
+    },
+
+    generateUpsize(event, recipeId) {
+        event.preventDefault();
+        const originalRecipe = this.data.find(r => r.id === recipeId);
+        if (!originalRecipe) return;
+
+        // Clone the recipe
+        const newRecipe = JSON.parse(JSON.stringify(originalRecipe));
+        newRecipe.id = window.app.storage.generateId('rec');
+        newRecipe.name = newRecipe.name + ' (Upsize)';
+        
+        // Update ingredients
+        const dbIngredients = window.app.storage.getIngredients();
+        let newRawCogs = 0;
+
+        if (newRecipe.ingredients) {
+            newRecipe.ingredients.forEach((ing, index) => {
+                const addInput = document.getElementById(`upsize-val-${index}`);
+                const addition = addInput ? parseFloat(addInput.value) || 0 : 0;
+                
+                ing.usage = parseFloat(ing.usage) + addition;
+
+                // Look up latest price
+                const latestIng = dbIngredients.find(i => i.id === ing.id);
+                if (latestIng && latestIng.buyPrice > 0 && latestIng.qty > 0 && ing.usage > 0) {
+                    ing.cost = (latestIng.buyPrice / latestIng.qty) * ing.usage;
+                } else {
+                    ing.cost = 0;
+                }
+                newRawCogs += ing.cost;
+            });
+        }
+
+        newRecipe.rawCogs = newRawCogs;
+        const bufferPct = newRecipe.bufferPct !== undefined ? newRecipe.bufferPct : 10;
+        const bufferAmount = newRawCogs * (bufferPct / 100);
+        newRecipe.totalCost = newRawCogs + bufferAmount;
+        
+        newRecipe.suggestedPrice = window.app.calculator.recommendedPrice(newRecipe.totalCost);
+        newRecipe.finalPrice = 0; // Reset final price for new product
+
+        // Save
+        this.data.push(newRecipe);
+        window.app.storage.saveRecipes(this.data);
+        
+        window.app.modal.close();
+        window.app.toast.show('Resep Upsize berhasil dibuat!');
+        this.render();
+        
+        // Cascade to menu and dashboard
+        if (window.app.menu) window.app.menu.render();
+        if (window.app.dashboard) window.app.dashboard.render();
     },
 
     // --- Excel-Like Builder Logic ---
