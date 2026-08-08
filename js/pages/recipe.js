@@ -383,7 +383,13 @@ window.app.recipes = {
         newRecipe.totalCost = newRawCogs + bufferAmount;
         
         newRecipe.suggestedPrice = window.app.calculator.recommendedPrice(newRecipe.totalCost);
-        newRecipe.finalPrice = 0; // Reset final price for new product
+        
+        // Upsize price logic: + Rp 5.000 from original normal price
+        if (originalRecipe.finalPrice && originalRecipe.finalPrice > 0) {
+            newRecipe.finalPrice = originalRecipe.finalPrice + 5000;
+        } else {
+            newRecipe.finalPrice = 0;
+        }
 
         // Save
         this.data.push(newRecipe);
