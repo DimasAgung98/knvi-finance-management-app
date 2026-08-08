@@ -335,7 +335,7 @@ window.app.recipes = {
                     ((ingUnit === 'gr' || ingUnit === 'gram') && !isIce)
                 ) {
                     defaultAddition = 5;
-                } else if (ingName.includes('espresso') || ingName.includes('shot')) {
+                } else if (ingName.includes('espresso') || ingName.includes('shot') || ingName.includes('cream') || ingName.includes('krim')) {
                     defaultAddition = 10;
                 } else if (
                     ingName.includes('susu') || ingName.includes('milk') || 
@@ -500,7 +500,7 @@ window.app.recipes = {
                                 </div>
                             </div>
                             <div>
-                                <label style="display: block; font-weight: 500; margin-bottom: 4px; font-size: 0.9em;">Tambah Espresso</label>
+                                <label style="display: block; font-weight: 500; margin-bottom: 4px; font-size: 0.9em;">Tambah Espresso / Krim</label>
                                 <div style="display: flex; align-items: center; gap: 8px;">
                                     <span style="font-weight: 500;">+</span>
                                     <input type="number" step="0.01" class="form-control" id="bulk-add-espresso" value="10" required>
@@ -612,7 +612,7 @@ window.app.recipes = {
                             ((ingUnit === 'gr' || ingUnit === 'gram') && !isIce)
                         ) {
                             ing.usage += addSyrup;
-                        } else if (ingName.includes('espresso') || ingName.includes('shot')) {
+                        } else if (ingName.includes('espresso') || ingName.includes('shot') || ingName.includes('cream') || ingName.includes('krim')) {
                             ing.usage += addEspresso;
                         } else if (
                             ingName.includes('susu') || ingName.includes('milk') || 
