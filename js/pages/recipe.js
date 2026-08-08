@@ -326,17 +326,21 @@ window.app.recipes = {
             } else {
                 // Render normal number input
                 let defaultAddition = 0;
+                const isIce = ingName.includes('ice') || ingName.includes('es ') || ingName.includes('es batu');
+
                 if (
                     ingName.includes('sirup') || ingName.includes('syrup') || 
                     ingName.includes('powder') || ingName.includes('bubuk') || 
-                    ingCat.includes('syrup') || ingCat.includes('powder') || ingUnit === 'gr' || ingUnit === 'gram'
+                    ingCat.includes('syrup') || ingCat.includes('powder') || 
+                    ((ingUnit === 'gr' || ingUnit === 'gram') && !isIce)
                 ) {
                     defaultAddition = 5;
                 } else if (
                     ingName.includes('susu') || ingName.includes('milk') || 
                     ingName.includes('kopi') || ingName.includes('coffee') || 
                     ingName.includes('espresso') || ingName.includes('air') || 
-                    ingName.includes('water') || ingCat.includes('dairy') || ingCat.includes('coffee') || ingUnit === 'ml'
+                    ingName.includes('water') || isIce || 
+                    ingCat.includes('dairy') || ingCat.includes('coffee') || ingUnit === 'ml'
                 ) {
                     defaultAddition = 50;
                 }
@@ -588,18 +592,21 @@ window.app.recipes = {
                             ing.buyQty = targetPackaging.qty;
                         }
                     } else if (ingCat !== 'packaging' && ingCat !== 'kemasan') {
+                        const isIce = ingName.includes('ice') || ingName.includes('es ') || ingName.includes('es batu');
                         // Apply additions
                         if (
                             ingName.includes('sirup') || ingName.includes('syrup') || 
                             ingName.includes('powder') || ingName.includes('bubuk') || 
-                            ingCat.includes('syrup') || ingCat.includes('powder') || ingUnit === 'gr' || ingUnit === 'gram'
+                            ingCat.includes('syrup') || ingCat.includes('powder') || 
+                            ((ingUnit === 'gr' || ingUnit === 'gram') && !isIce)
                         ) {
                             ing.usage += addSyrup;
                         } else if (
                             ingName.includes('susu') || ingName.includes('milk') || 
                             ingName.includes('kopi') || ingName.includes('coffee') || 
                             ingName.includes('espresso') || ingName.includes('air') || 
-                            ingName.includes('water') || ingCat.includes('dairy') || ingCat.includes('coffee') || ingUnit === 'ml'
+                            ingName.includes('water') || isIce || 
+                            ingCat.includes('dairy') || ingCat.includes('coffee') || ingUnit === 'ml'
                         ) {
                             ing.usage += addLiquid;
                         }
