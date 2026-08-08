@@ -587,47 +587,15 @@ window.app.ingredients = {
         this.closePremixBuilder();
         window.app.toast.show('Premix saved successfully!');
         
-        // Also update any recipes that might be using this premix (since its cost might have changed)
-        this.recalculateRecipesCost(premixData.id);
-        
-        if(window.app.dashboard) window.app.dashboard.render();
-    },
-
-    recalculateRecipesCost(ingredientId) {
-        const recipes = window.app.storage.getRecipes();
-        let changed = false;
-
-        recipes.forEach(recipe => {
-            if (recipe.ingredients) {
-                let recipeChanged = false;
-                recipe.ingredients.forEach(ing => {
-                    if (ing.id === ingredientId) {
-                        // Find updated ingredient data
-                        const updatedIng = this.data.find(i => i.id === ingredientId);
-                        if(updatedIng) {
-                            ing.buyPrice = updatedIng.buyPrice;
-                            ing.buyQty = updatedIng.qty;
-                            ing.cost = (updatedIng.buyPrice / updatedIng.qty) * ing.usage;
-                            recipeChanged = true;
-                        }
-                    }
-                });
-                
-                if (recipeChanged) {
-                    recipe.totalCost = recipe.ingredients.reduce((sum, row) => sum + row.cost, 0);
-                    recipe.suggestedPrice = window.app.calculator.recommendedPrice(recipe.totalCost);
-                    changed = true;
-                }
-            }
-        });
-
-        if (changed) {
-            window.app.storage.saveRecipes(recipes);
-            if(window.app.recipes && typeof window.app.recipes.render === 'function') {
-                window.app.recipes.render();
-            }
+        // Use global cascade updates to sync all nested premixes and recipes
+        if (window.app.calculator && window.app.calculator.cascadeUpdates) {
+            window.app.calculator.cascadeUpdates();
+        } else {
+            if(window.app.dashboard) window.app.dashboard.render();
         }
     },
+
+        // Removed old recalculateRecipesCost logic
 
     exportCsv() {
         const sep = "sep=;\n";
@@ -745,8 +713,6 @@ window.app.ingredients = {
                 this.data[existingIndex].unit = unit || this.data[existingIndex].unit;
                 this.data[existingIndex].costPerUnit = costPerUnit;
                 
-                // Trigger recipe recalculation for this updated ingredient
-                this.recalculateRecipesCost(this.data[existingIndex].id);
                 updatedCount++;
             } else {
                 // Insert new ingredient
@@ -772,9 +738,16 @@ window.app.ingredients = {
         if (addedCount > 0 || updatedCount > 0) {
             window.app.storage.saveIngredients(this.data);
             this.populateFilter();
-            this.render();
+            
+            // Trigger cascading updates to sync recipes and nested premixes
+            if (window.app.calculator && window.app.calculator.cascadeUpdates) {
+                window.app.calculator.cascadeUpdates();
+            } else {
+                this.render();
+                if(window.app.dashboard) window.app.dashboard.render();
+            }
+            
             window.app.toast.show(`Success! ${addedCount} added, ${updatedCount} updated.`);
-            if(window.app.dashboard) window.app.dashboard.render();
         } else {
             Swal.fire({ icon: 'error', title: 'Import Failed', text: 'No valid ingredients data found in the CSV. Please check the template format.' });
         }

@@ -62,23 +62,25 @@ window.app.calculator = {
             ingredients.forEach(premix => {
                 if (premix.isPremix && premix.premixIngredients) {
                     let totalCogs = 0;
-                    premix.premixIngredients.forEach(row => {
-                        // Find latest ingredient
+                    // Filter out any ingredients that no longer exist (were deleted)
+                    premix.premixIngredients = premix.premixIngredients.filter(row => {
                         const latestIng = ingredients.find(i => i.id === row.id);
-                        if (latestIng) {
-                            row.name = latestIng.name;
-                            row.category = latestIng.category;
-                            row.buyPrice = latestIng.buyPrice;
-                            row.buyQty = latestIng.qty;
-                            row.buyUnit = latestIng.unit;
-                            
-                            if (row.buyPrice > 0 && row.buyQty > 0 && row.usage > 0) {
-                                row.cost = (row.buyPrice / row.buyQty) * row.usage;
-                            } else {
-                                row.cost = 0;
-                            }
+                        if (!latestIng) return false; // Remove deleted ingredient
+                        
+                        row.name = latestIng.name;
+                        row.category = latestIng.category;
+                        row.buyPrice = latestIng.buyPrice;
+                        row.buyQty = latestIng.qty;
+                        row.buyUnit = latestIng.unit;
+                        
+                        if (row.buyPrice > 0 && row.buyQty > 0 && row.usage > 0) {
+                            row.cost = (row.buyPrice / row.buyQty) * row.usage;
+                        } else {
+                            row.cost = 0;
                         }
+                        
                         totalCogs += (row.cost || 0);
+                        return true;
                     });
                     
                     premix.buyPrice = totalCogs;
@@ -92,22 +94,25 @@ window.app.calculator = {
         recipes.forEach(recipe => {
             if (recipe.ingredients) {
                 let rawCogs = 0;
-                recipe.ingredients.forEach(row => {
+                // Filter out any ingredients that no longer exist (were deleted)
+                recipe.ingredients = recipe.ingredients.filter(row => {
                     const latestIng = ingredients.find(i => i.id === row.id);
-                    if (latestIng) {
-                        row.name = latestIng.name;
-                        row.category = latestIng.category;
-                        row.buyPrice = latestIng.buyPrice;
-                        row.buyQty = latestIng.qty;
-                        row.buyUnit = latestIng.unit;
-                        
-                        if (row.buyPrice > 0 && row.buyQty > 0 && row.usage > 0) {
-                            row.cost = (row.buyPrice / row.buyQty) * row.usage;
-                        } else {
-                            row.cost = 0;
-                        }
+                    if (!latestIng) return false; // Remove deleted ingredient
+                    
+                    row.name = latestIng.name;
+                    row.category = latestIng.category;
+                    row.buyPrice = latestIng.buyPrice;
+                    row.buyQty = latestIng.qty;
+                    row.buyUnit = latestIng.unit;
+                    
+                    if (row.buyPrice > 0 && row.buyQty > 0 && row.usage > 0) {
+                        row.cost = (row.buyPrice / row.buyQty) * row.usage;
+                    } else {
+                        row.cost = 0;
                     }
+                    
                     rawCogs += (row.cost || 0);
+                    return true;
                 });
                 
                 recipe.rawCogs = rawCogs;
