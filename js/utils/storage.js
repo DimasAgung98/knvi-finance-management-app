@@ -8,7 +8,8 @@ window.app.storage = {
         OPEX: 'hpp_opex',
         PROJECTIONS: 'hpp_projections',
         SALES_HISTORY: 'hpp_sales_history',
-        DAILY_EXPENSES: 'hpp_daily_expenses'
+        DAILY_EXPENSES: 'hpp_daily_expenses',
+        RECIPES_TYPES: 'hpp_recipes_types'
     },
 
     isFirstRun() {
@@ -144,6 +145,9 @@ window.app.storage = {
 
     getSalesHistory() { return this.get(this.KEYS.SALES_HISTORY); },
     saveSalesHistory(data) { this.save(this.KEYS.SALES_HISTORY, data); },
+
+    getRecipeTypes() { return this.get(this.KEYS.RECIPES_TYPES); },
+    saveRecipeTypes(data) { this.save(this.KEYS.RECIPES_TYPES, data); },
 
     generateId(prefix) {
         return prefix + '_' + Math.random().toString(36).substr(2, 9);

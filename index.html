@@ -416,15 +416,20 @@
 
                 <!-- List View -->
                 <div id="recipe-list-view">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-                        <input type="text" class="form-control" style="max-width: 300px;"
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px; align-items: center; flex-wrap: wrap; gap: 10px;">
+                        <input type="text" class="form-control" style="max-width: 300px; flex: 1;"
                             placeholder="Search recipes..." id="recipe-search">
                         <div style="display: flex; gap: 10px;">
-                            <button class="btn btn-secondary" onclick="window.app.recipes.printAllCheatSheets()"><i
-                                    class="ph ph-printer"></i> Print All SOP</button>
+                            <button class="btn btn-secondary" onclick="window.app.recipes.printAllCheatSheets()" title="Print All SOP"><i
+                                    class="ph ph-printer"></i> Print</button>
+                            <button class="btn btn-secondary" onclick="window.app.recipes.openCategoryManager()"><i class="ph ph-list"></i> Kategori</button>
                             <button class="btn btn-primary" onclick="window.app.recipes.openBuilder()"><i
                                     class="ph ph-plus"></i> Add Recipe</button>
                         </div>
+                    </div>
+                    <!-- CATEGORY FILTER CHIPS -->
+                    <div id="recipe-category-filters" style="display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px; white-space: nowrap;">
+                        <!-- Injected via JS -->
                     </div>
                     <div id="recipe-list" style="display: flex; flex-direction: column; gap: 12px;">
                         <!-- Injected via JS -->
@@ -438,9 +443,15 @@
                             style="padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
                             <div>
                                 <h3 style="margin-bottom: 10px;">Recipe Builder</h3>
-                                <input type="text" id="builder-recipe-name" class="form-control"
-                                    placeholder="Enter Recipe Name..."
-                                    style="max-width: 400px; font-size: 1.1rem; font-weight: 500;">
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="text" id="builder-recipe-name" class="form-control"
+                                        placeholder="Enter Recipe Name..."
+                                        style="max-width: 300px; font-size: 1.1rem; font-weight: 500;">
+                                    <select id="builder-recipe-category" class="form-control" style="width: 200px;">
+                                        <option value="">-- No Category --</option>
+                                        <!-- Injected via JS -->
+                                    </select>
+                                </div>
                             </div>
                             <div style="display: flex; gap: 10px;" class="no-print">
                                 <button class="btn btn-secondary" onclick="window.print()"

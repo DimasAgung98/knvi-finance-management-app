@@ -2,6 +2,8 @@ window.app = window.app || {};
 
 window.app.recipes = {
     data: [],
+    recipeTypes: [],
+    activeCategory: '',
     builderRows: [],
     editId: null,
     
@@ -13,6 +15,7 @@ window.app.recipes = {
 
     loadData() {
         this.data = window.app.storage.getRecipes();
+        this.recipeTypes = window.app.storage.getRecipeTypes();
     },
 
     setupListeners() {
@@ -27,12 +30,16 @@ window.app.recipes = {
     render(searchQuery = '') {
         const listEl = document.getElementById('recipe-list');
         if(!listEl) return;
+        
+        this.renderCategoryFilters();
 
         listEl.innerHTML = '';
         
-        const filteredData = this.data.filter(item => 
-            item.name.toLowerCase().includes(searchQuery)
-        );
+        const filteredData = this.data.filter(item => {
+            const matchesSearch = item.name.toLowerCase().includes(searchQuery);
+            const matchesCategory = this.activeCategory === '' || item.category === this.activeCategory;
+            return matchesSearch && matchesCategory;
+        });
 
         if (filteredData.length === 0) {
             listEl.innerHTML = `<div class="card" style="text-align:center; color: var(--text-muted);">No recipes found</div>`;
@@ -184,6 +191,91 @@ window.app.recipes = {
         window.addEventListener('afterprint', cleanup);
     },
 
+    // --- Category Management & Filtering ---
+    renderCategoryFilters() {
+        const container = document.getElementById('recipe-category-filters');
+        if(!container) return;
+        
+        let html = `<button class="btn ${this.activeCategory === '' ? 'btn-primary' : 'btn-secondary'}" style="border-radius: 20px; padding: 4px 12px; font-size: 0.9em;" onclick="window.app.recipes.setCategory('')">Semua</button>`;
+        
+        this.recipeTypes.forEach(type => {
+            const isActive = this.activeCategory === type.name;
+            html += `<button class="btn ${isActive ? 'btn-primary' : 'btn-secondary'}" style="border-radius: 20px; padding: 4px 12px; font-size: 0.9em;" onclick="window.app.recipes.setCategory('${type.name}')">${type.name}</button>`;
+        });
+        
+        container.innerHTML = html;
+    },
+
+    setCategory(cat) {
+        this.activeCategory = cat;
+        this.render(document.getElementById('recipe-search') ? document.getElementById('recipe-search').value.toLowerCase() : '');
+    },
+
+    openCategoryManager() {
+        const html = `
+            <div style="margin-bottom: 16px; display: flex; gap: 8px;">
+                <input type="text" id="new-category-name" class="form-control" placeholder="Nama Kategori Baru...">
+                <button class="btn btn-primary" onclick="window.app.recipes.addCategory()"><i class="ph ph-plus"></i></button>
+            </div>
+            <div id="category-list-modal" style="display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto;">
+                ${this.recipeTypes.map(t => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--bg-main); border-radius: var(--radius-sm);">
+                        <span>${t.name}</span>
+                        <button class="btn" style="color: var(--danger-color); padding: 4px;" onclick="window.app.recipes.deleteCategory('${t.id}')"><i class="ph ph-trash"></i></button>
+                    </div>
+                `).join('')}
+                ${this.recipeTypes.length === 0 ? '<div style="text-align: center; color: var(--text-muted); padding: 12px;">Belum ada kategori</div>' : ''}
+            </div>
+        `;
+        window.app.modal.show('Kelola Kategori', html);
+    },
+
+    addCategory() {
+        const nameInput = document.getElementById('new-category-name');
+        const name = nameInput.value.trim();
+        if(!name) return;
+        
+        if (this.recipeTypes.find(t => t.name.toLowerCase() === name.toLowerCase())) {
+            window.app.toast.show('Kategori sudah ada!', 'error');
+            return;
+        }
+        
+        this.recipeTypes.push({
+            id: window.app.storage.generateId('cat'),
+            name: name
+        });
+        
+        window.app.storage.saveRecipeTypes(this.recipeTypes);
+        window.app.toast.show('Kategori ditambahkan');
+        
+        this.renderCategoryFilters();
+        this.openCategoryManager(); // Refresh modal
+    },
+
+    deleteCategory(id) {
+        if(!window.Swal) return;
+        Swal.fire({
+            title: 'Hapus Kategori?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#fa5252',
+            confirmButtonText: 'Ya, hapus!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                this.recipeTypes = this.recipeTypes.filter(t => t.id !== id);
+                window.app.storage.saveRecipeTypes(this.recipeTypes);
+                
+                if (this.activeCategory && !this.recipeTypes.find(t => t.name === this.activeCategory)) {
+                    this.activeCategory = '';
+                }
+                
+                this.render();
+                this.openCategoryManager(); // Refresh modal
+                window.app.toast.show('Kategori dihapus');
+            }
+        });
+    },
+
     // --- Excel-Like Builder Logic ---
 
     openBuilder(recipeId = null) {
@@ -213,9 +305,26 @@ window.app.recipes = {
                 if(bufferInput) {
                     bufferInput.value = recipe.bufferPct !== undefined ? recipe.bufferPct : 10;
                 }
+                // Category
+                const catSelect = document.getElementById('builder-recipe-category');
+                if (catSelect) {
+                    let catHtml = '<option value="">-- No Category --</option>';
+                    this.recipeTypes.forEach(t => catHtml += `<option value="${t.name}">${t.name}</option>`);
+                    catSelect.innerHTML = catHtml;
+                    catSelect.value = recipe.category || '';
+                }
             }
         } else {
             nameInput.value = '';
+            
+            const catSelect = document.getElementById('builder-recipe-category');
+            if (catSelect) {
+                let catHtml = '<option value="">-- No Category --</option>';
+                this.recipeTypes.forEach(t => catHtml += `<option value="${t.name}">${t.name}</option>`);
+                catSelect.innerHTML = catHtml;
+                catSelect.value = '';
+            }
+
             const finalPriceInput = document.getElementById('builder-final-price');
             if(finalPriceInput) finalPriceInput.value = '';
             const bufferInput = document.getElementById('builder-buffer-pct');
@@ -465,9 +574,13 @@ window.app.recipes = {
         const finalPriceInput = document.getElementById('builder-final-price');
         const finalPrice = window.app.formatter.unformatInput(finalPriceInput.value) || 0;
 
+        const catSelect = document.getElementById('builder-recipe-category');
+        const category = catSelect ? catSelect.value : '';
+
         const recipeToSave = {
             id: this.editId || window.app.storage.generateId('rec'),
             name,
+            category,
             ingredients: validIngredients,
             totalCost, // final cogs with buffer
             rawCogs, // without buffer
