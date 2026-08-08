@@ -296,7 +296,7 @@ window.app.recipes = {
         ingredientsList.forEach((ing, index) => {
             const ingName = (ing.name || '').toLowerCase();
             const ingCat = (ing.category || '').toLowerCase();
-            const ingUnit = (ing.unit || '').toLowerCase();
+            const ingUnit = (ing.buyUnit || '').toLowerCase();
             let defaultAddition = 0;
             
             // Heuristic for default additions
@@ -321,12 +321,12 @@ window.app.recipes = {
                 <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-main); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
                     <div style="flex: 1; min-width: 0;">
                         <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${ing.name}</div>
-                        <div style="font-size: 0.8em; color: var(--text-muted);">Asli: ${ing.usage} ${ing.unit}</div>
+                        <div style="font-size: 0.8em; color: var(--text-muted);">Asli: ${ing.usage} ${ing.buyUnit || ''}</div>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <span style="font-weight: 500;">+</span>
                         <input type="number" step="0.01" class="form-control" id="upsize-val-${index}" value="${defaultAddition}" style="width: 80px; text-align: center; padding: 4px;">
-                        <span style="font-size: 0.85em; color: var(--text-secondary); width: 30px;">${ing.unit}</span>
+                        <span style="font-size: 0.85em; color: var(--text-secondary); width: 30px;">${ing.buyUnit || ''}</span>
                     </div>
                 </div>
             `;
