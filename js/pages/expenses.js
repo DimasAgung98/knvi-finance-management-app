@@ -39,17 +39,16 @@ window.app.expenses = {
         const dateVal = document.getElementById('expense-filter-date')?.value;
         const monthVal = document.getElementById('expense-filter-month')?.value;
 
-        return this.data.filter(item => {
-            const itemDate = new Date(item.date);
-            const today = new Date();
+        const now = new Date();
+        const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
 
+        return this.data.filter(item => {
             if (type === 'today') {
-                return itemDate.toDateString() === today.toDateString();
+                return item.date === todayStr;
             } else if (type === 'date' && dateVal) {
                 return item.date === dateVal;
             } else if (type === 'month' && monthVal) {
-                const itemMonth = `${itemDate.getFullYear()}-${String(itemDate.getMonth() + 1).padStart(2, '0')}`;
-                return itemMonth === monthVal;
+                return item.date.startsWith(monthVal);
             }
             return true; // 'all'
         }).sort((a, b) => new Date(b.date) - new Date(a.date));
