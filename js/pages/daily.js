@@ -238,9 +238,13 @@ window.app.daily = {
                 <div>
                     <h4 style="margin-bottom: 12px; color: var(--text-secondary); border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Pengeluaran (Kas Kecil)</h4>
                     <div style="margin-bottom: 12px;">
-                        <label style="display: block; font-weight: 500; margin-bottom: 4px;">Total Kas Kecil (Auto)</label>
-                        <input type="text" id="daily-form-kaskecil" class="form-control" value="${window.app.formatter.number(kasKecil)}" disabled style="background: var(--bg-surface);">
-                        <small style="color: var(--text-muted);">Terintegrasi otomatis dari menu Pengeluaran Harian di tanggal yang dipilih.</small>
+                        <div style="margin-bottom: 16px;">
+                        <label>Total Kas Kecil (Auto)</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="daily-form-kaskecil" class="form-control" value="${window.app.formatter.number(kasKecil)}" disabled style="background: var(--bg-body); opacity: 0.8; flex: 1;">
+                            <button type="button" class="btn btn-secondary" onclick="window.app.daily.showExpenseDetails()" style="white-space: nowrap;"><i class="ph ph-info"></i> Detail</button>
+                        </div>
+                        <div style="font-size: 0.8em; color: var(--text-muted); margin-top: 4px;">Terintegrasi otomatis dari menu Pengeluaran Harian di tanggal yang dipilih.</div>
                     </div>
 
                     <h4 style="margin-top: 24px; margin-bottom: 12px; color: var(--text-secondary); border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Rekonsiliasi Uang Fisik</h4>
@@ -280,6 +284,43 @@ window.app.daily = {
             document.getElementById('daily-form-kaskecil').value = window.app.formatter.number(kasKecil);
             this.calculateForm();
         }
+    },
+
+    showExpenseDetails() {
+        const dateStr = document.getElementById('daily-form-date')?.value;
+        if (!dateStr || !window.app.expenses) return;
+        
+        const expenses = window.app.expenses.data.filter(d => d.date === dateStr && d.source === 'Cash');
+        let html = '';
+        if (expenses.length === 0) {
+            html = '<p style="color: var(--text-muted); margin-top: 20px;">Tidak ada kas kecil di tanggal ini.</p>';
+        } else {
+            html = `
+            <table class="excel-table" style="width: 100%; text-align: left; margin-top: 16px;">
+                <thead>
+                    <tr>
+                        <th>Keterangan</th>
+                        <th style="text-align: right;">Nominal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${expenses.map(e => `
+                    <tr>
+                        <td>${e.desc}</td>
+                        <td style="text-align: right;">${window.app.formatter.currency(e.amount)}</td>
+                    </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+            `;
+        }
+        
+        Swal.fire({
+            title: `Rincian Kas Kecil`,
+            html: html,
+            width: '400px',
+            confirmButtonText: 'Tutup'
+        });
     },
 
     formatInput(el) {
