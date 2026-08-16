@@ -103,6 +103,7 @@ window.app.recipes = {
                     <div style="display: flex; gap: 8px;">
                         <button class="btn btn-secondary" onclick="event.stopPropagation(); window.app.recipes.duplicate('${item.id}')" style="padding: 6px 12px;"><i class="ph ph-copy"></i> Duplicate</button>
                         <button class="btn btn-secondary" onclick="event.stopPropagation(); window.app.recipes.openUpsizeModal('${item.id}')" style="padding: 6px 12px; color: var(--primary-color);"><i class="ph ph-trend-up"></i> Upsize</button>
+                        <button class="btn btn-secondary" onclick="event.stopPropagation(); window.app.recipes.openProjectionModal('${item.id}')" style="padding: 6px 12px; color: var(--success-color);"><i class="ph ph-chart-line-up"></i> Proyeksi</button>
                         <button class="btn btn-secondary" onclick="event.stopPropagation(); window.app.recipes.openBuilder('${item.id}')" style="padding: 6px 12px;"><i class="ph ph-pencil-simple"></i> Edit</button>
                         <button class="btn btn-secondary" onclick="event.stopPropagation(); window.app.recipes.delete('${item.id}')" style="padding: 6px 12px; color: var(--danger-color);"><i class="ph ph-trash"></i></button>
                         <i class="ph ph-caret-down" id="caret-${item.id}" style="margin-left: 8px; transition: transform 0.2s;"></i>
@@ -665,6 +666,189 @@ window.app.recipes = {
         // Cascade to menu and dashboard
         if (window.app.menu) window.app.menu.render();
         if (window.app.dashboard) window.app.dashboard.render();
+    },
+
+    // --- Projection Logic ---
+    openProjectionModal(recipeId) {
+        const recipe = this.data.find(r => r.id === recipeId);
+        if (!recipe) return;
+
+        // Ensure we have a valid selling price to start with
+        let defaultSellingPrice = recipe.finalPrice > 0 ? recipe.finalPrice : recipe.suggestedPrice;
+        // Avoid 0 to prevent division by zero in some edge cases, although mostly handled
+        if (!defaultSellingPrice) defaultSellingPrice = 0;
+
+        const html = `
+            <div style="margin-bottom: 16px;">
+                <p style="color: var(--text-secondary); margin: 0 0 16px 0; font-size: 0.95em;">
+                    Kalkulator ini membantu Anda menentukan berapa cup <b>${recipe.name}</b> yang harus terjual per hari agar toko bisa mencapai target profit.
+                </p>
+                
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <!-- INFO DASAR RESEP -->
+                    <div style="background: var(--bg-main); padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--border-color); display: flex; justify-content: space-between;">
+                        <div>
+                            <div style="font-size: 0.85em; color: var(--text-muted);">Harga Modal (HPP)</div>
+                            <div style="font-weight: 600; font-size: 1.1em;" id="proj-cogs" data-val="${recipe.totalCost}">${window.app.formatter.currency(recipe.totalCost)}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.85em; color: var(--text-muted);">Margin Kotor per Cup</div>
+                            <div style="font-weight: 600; font-size: 1.1em; color: var(--success-color);" id="proj-margin-text">Rp 0</div>
+                        </div>
+                    </div>
+
+                    <!-- INPUT USER -->
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 12px;">
+                        <div>
+                            <label style="display: block; font-weight: 500; margin-bottom: 4px; font-size: 0.9em;">1. Harga Jual Pilihan</label>
+                            <div style="position: relative;">
+                                <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted);">Rp</span>
+                                <input type="text" class="form-control" id="proj-selling-price" value="${window.app.formatter.number(defaultSellingPrice)}" style="padding-left: 35px; font-weight: bold;" oninput="window.app.recipes.calculateProjection()">
+                            </div>
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: 500; margin-bottom: 4px; font-size: 0.9em;">2. Target Laba Bersih / Bulan</label>
+                            <div style="position: relative;">
+                                <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted);">Rp</span>
+                                <input type="text" class="form-control" id="proj-target-profit" value="10.000.000" style="padding-left: 35px;" oninput="window.app.recipes.calculateProjection()">
+                            </div>
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: 500; margin-bottom: 4px; font-size: 0.9em;">3. Total Biaya Tetap / Bulan (Sewa, Gaji, dll)</label>
+                            <div style="position: relative;">
+                                <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted);">Rp</span>
+                                <input type="text" class="form-control" id="proj-fixed-cost" value="5.800.000" style="padding-left: 35px;" oninput="window.app.recipes.calculateProjection()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- HASIL -->
+                    <div style="margin-top: 8px;">
+                        <h4 style="margin: 0 0 12px 0; font-size: 1.1em;">Target & Proyeksi Penjualan</h4>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                            <div style="background: var(--bg-surface); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color); text-align: center;">
+                                <div style="font-size: 0.85em; color: var(--text-muted); margin-bottom: 4px;">Target Jual / Hari <i class="ph ph-info" title="Asumsi 30 hari sebulan"></i></div>
+                                <div style="font-weight: 700; font-size: 1.5em; color: var(--text-main);" id="proj-target-day">0 pcs</div>
+                            </div>
+                            <div style="background: var(--bg-surface); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color); text-align: center;">
+                                <div style="font-size: 0.85em; color: var(--text-muted); margin-bottom: 4px;">Total Jual / Bulan</div>
+                                <div style="font-weight: 700; font-size: 1.5em; color: var(--text-main);" id="proj-target-month">0 pcs</div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div style="background: rgba(46, 204, 113, 0.1); padding: 12px; border-radius: var(--radius-md); border: 1px solid rgba(46, 204, 113, 0.2); display: flex; justify-content: space-between; align-items: center;">
+                                <div style="font-size: 0.9em; color: var(--success-color);">Potensi Omzet / Bulan</div>
+                                <div style="font-weight: 700; color: var(--success-color);" id="proj-omzet">Rp 0</div>
+                            </div>
+                            <div style="background: rgba(255, 71, 87, 0.05); padding: 12px; border-radius: var(--radius-md); border: 1px solid rgba(255, 71, 87, 0.1); display: flex; justify-content: space-between; align-items: center;">
+                                <div style="font-size: 0.9em; color: var(--danger-color);">Biaya Tetap / Bulan</div>
+                                <div style="font-weight: 600; color: var(--danger-color);" id="proj-fixed-cost-display">Rp 0</div>
+                            </div>
+                            <div style="background: rgba(46, 204, 113, 0.15); padding: 16px; border-radius: var(--radius-md); border: 1px solid rgba(46, 204, 113, 0.3); display: flex; justify-content: space-between; align-items: center;">
+                                <div style="font-size: 1em; font-weight: 600; color: var(--text-main);">Proyeksi Laba Bersih / Bulan</div>
+                                <div style="font-weight: 700; font-size: 1.2em; color: var(--success-color);" id="proj-net-profit">Rp 0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; margin-top: 24px;">
+                    <button type="button" class="btn btn-secondary" onclick="window.app.modal.close()">Tutup</button>
+                </div>
+            </div>
+        `;
+        window.app.modal.open(`Proyeksi Bisnis: ${recipe.name}`, html);
+        
+        // Setup unmasking for inputs and trigger initial calculation
+        setTimeout(() => {
+            const inputs = ['proj-selling-price', 'proj-target-profit', 'proj-fixed-cost'];
+            inputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('input', function(e) {
+                        let val = this.value.replace(/[^0-9]/g, '');
+                        if (val) {
+                            this.value = window.app.formatter.number(parseFloat(val));
+                        }
+                    });
+                }
+            });
+            this.calculateProjection();
+        }, 100);
+    },
+
+    calculateProjection() {
+        // Get values
+        const cogsEl = document.getElementById('proj-cogs');
+        if (!cogsEl) return;
+        
+        const cogs = parseFloat(cogsEl.getAttribute('data-val')) || 0;
+        
+        const getVal = (id) => {
+            const el = document.getElementById(id);
+            if (!el) return 0;
+            return parseFloat(el.value.replace(/[^0-9]/g, '')) || 0;
+        };
+
+        const sellingPrice = getVal('proj-selling-price');
+        const targetProfit = getVal('proj-target-profit');
+        const fixedCost = getVal('proj-fixed-cost');
+
+        const grossProfitPerUnit = sellingPrice - cogs;
+        
+        // Update Margin UI
+        const marginTextEl = document.getElementById('proj-margin-text');
+        if (marginTextEl) {
+            marginTextEl.textContent = window.app.formatter.currency(grossProfitPerUnit);
+            if (grossProfitPerUnit <= 0) {
+                marginTextEl.style.color = 'var(--danger-color)';
+                marginTextEl.textContent += ' (RUGI)';
+            } else {
+                marginTextEl.style.color = 'var(--success-color)';
+            }
+        }
+
+        const targetDayEl = document.getElementById('proj-target-day');
+        const targetMonthEl = document.getElementById('proj-target-month');
+        const omzetEl = document.getElementById('proj-omzet');
+        const fixedCostDisplayEl = document.getElementById('proj-fixed-cost-display');
+        const netProfitEl = document.getElementById('proj-net-profit');
+
+        if (fixedCostDisplayEl) fixedCostDisplayEl.textContent = window.app.formatter.currency(fixedCost);
+
+        if (grossProfitPerUnit <= 0) {
+            // Cannot reach profit if selling at loss
+            if (targetDayEl) targetDayEl.textContent = 'N/A';
+            if (targetMonthEl) targetMonthEl.textContent = 'N/A';
+            if (omzetEl) omzetEl.textContent = 'Rp 0';
+            if (netProfitEl) {
+                netProfitEl.textContent = 'Rugi per cup';
+                netProfitEl.style.color = 'var(--danger-color)';
+            }
+            return;
+        }
+
+        // Required Gross Profit to cover fixed cost AND target profit
+        const requiredGrossProfit = targetProfit + fixedCost;
+        
+        // Target Sales
+        const targetSalesMonth = Math.ceil(requiredGrossProfit / grossProfitPerUnit);
+        const targetSalesDay = (targetSalesMonth / 30).toFixed(1);
+
+        // Projections
+        const projectedOmzet = targetSalesMonth * sellingPrice;
+        const projectedNetProfit = (targetSalesMonth * grossProfitPerUnit) - fixedCost;
+
+        // Update UI
+        if (targetDayEl) targetDayEl.textContent = `${targetSalesDay} pcs`;
+        if (targetMonthEl) targetMonthEl.textContent = `${window.app.formatter.number(targetSalesMonth)} pcs`;
+        if (omzetEl) omzetEl.textContent = window.app.formatter.currency(projectedOmzet);
+        if (netProfitEl) {
+            netProfitEl.textContent = window.app.formatter.currency(projectedNetProfit);
+            netProfitEl.style.color = 'var(--success-color)';
+        }
     },
 
     // --- Excel-Like Builder Logic ---
