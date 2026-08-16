@@ -1,0 +1,340 @@
+window.app = window.app || {};
+
+window.app.daily = {
+    data: [],
+    
+    init() {
+        this.loadData();
+        this.renderDashboard();
+    },
+
+    loadData() {
+        const stored = localStorage.getItem('knvi_daily_records');
+        if (stored) {
+            this.data = JSON.parse(stored);
+        } else {
+            this.data = [];
+        }
+    },
+
+    saveData() {
+        localStorage.setItem('knvi_daily_records', JSON.stringify(this.data));
+    },
+
+    onFilterChange() {
+        const type = document.getElementById('daily-filter-type').value;
+        const dateInput = document.getElementById('daily-filter-date');
+        const monthInput = document.getElementById('daily-filter-month');
+
+        dateInput.style.display = 'none';
+        monthInput.style.display = 'none';
+
+        if (type === 'date') dateInput.style.display = 'block';
+        if (type === 'month') monthInput.style.display = 'block';
+
+        this.renderDashboard();
+    },
+
+    getFilteredData() {
+        const type = document.getElementById('daily-filter-type')?.value || 'all';
+        const dateVal = document.getElementById('daily-filter-date')?.value;
+        const monthVal = document.getElementById('daily-filter-month')?.value;
+
+        return this.data.filter(item => {
+            const itemDate = new Date(item.date);
+            const today = new Date();
+
+            if (type === 'today') {
+                return itemDate.toDateString() === today.toDateString();
+            } else if (type === 'date' && dateVal) {
+                return item.date === dateVal;
+            } else if (type === 'month' && monthVal) {
+                const itemMonth = `${itemDate.getFullYear()}-${String(itemDate.getMonth() + 1).padStart(2, '0')}`;
+                return itemMonth === monthVal;
+            }
+            return true; // 'all'
+        }).sort((a, b) => new Date(b.date) - new Date(a.date));
+    },
+
+    renderDashboard() {
+        const tbody = document.getElementById('daily-table-body');
+        if (!tbody) return;
+
+        const filtered = this.getFilteredData();
+        
+        let totalOmzet = 0;
+        let totalCash = 0;
+        let totalQRIS = 0;
+        let totalKasKecil = 0;
+        let totalRestartShare = 0;
+        let totalShortage = 0;
+
+        tbody.innerHTML = '';
+        
+        if (filtered.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 24px;">Belum ada rekap harian</td></tr>`;
+        } else {
+            filtered.forEach(item => {
+                const omzet = (item.kanovi || 0) + (item.restart || 0);
+                const cash = item.cash || 0;
+                const qris = item.qris || 0;
+                const kasKecil = item.kasKecil || 0;
+                
+                const setoranHarusnya = cash - kasKecil;
+                const setoranAktual = item.actualCash !== undefined ? item.actualCash : setoranHarusnya;
+                const shortage = setoranAktual - setoranHarusnya;
+
+                const restartSharePercent = item.restartSharePercent || 0;
+                const restartShare = (item.restart || 0) * (restartSharePercent / 100);
+
+                totalOmzet += omzet;
+                totalCash += setoranAktual; // Total fisik yg disetor
+                totalQRIS += qris;
+                totalKasKecil += kasKecil;
+                totalRestartShare += restartShare;
+                totalShortage += shortage;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="text-align: left;">${item.date}</td>
+                        <td style="text-align: right;">${window.app.formatter.currency(cash)}</td>
+                        <td style="text-align: right;">${window.app.formatter.currency(qris)}</td>
+                        <td style="text-align: right;">${window.app.formatter.currency(item.kanovi || 0)}</td>
+                        <td style="text-align: right;">${window.app.formatter.currency(item.restart || 0)}</td>
+                        <td style="text-align: right; color: var(--warning-color);">${window.app.formatter.currency(kasKecil)}</td>
+                        <td style="text-align: right; color: ${shortage < 0 ? 'var(--danger-color)' : 'var(--success-color)'}; font-weight: bold;">${window.app.formatter.currency(setoranAktual)}</td>
+                        <td style="text-align: right; color: ${shortage < 0 ? 'var(--danger-color)' : (shortage > 0 ? 'var(--success-color)' : 'var(--text-muted)')};">${window.app.formatter.currency(shortage)}</td>
+                        <td style="text-align: center;">
+                            <button class="btn btn-secondary" onclick="window.app.daily.openForm('${item.id}')" style="padding: 4px 8px;"><i class="ph ph-pencil-simple"></i></button>
+                            <button class="btn btn-secondary" onclick="window.app.daily.delete('${item.id}')" style="padding: 4px 8px; color: var(--danger-color);"><i class="ph ph-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.getElementById('daily-dash-omzet').textContent = window.app.formatter.currency(totalOmzet);
+        document.getElementById('daily-dash-cash').textContent = window.app.formatter.currency(totalCash);
+        document.getElementById('daily-dash-qris').textContent = window.app.formatter.currency(totalQRIS);
+        
+        const shortageEl = document.getElementById('daily-dash-shortage');
+        shortageEl.textContent = window.app.formatter.currency(totalShortage);
+        if (totalShortage < 0) {
+            shortageEl.style.color = 'var(--danger-color)';
+        } else if (totalShortage > 0) {
+            shortageEl.style.color = 'var(--success-color)';
+        } else {
+            shortageEl.style.color = 'var(--text-muted)';
+        }
+
+        document.getElementById('daily-dash-kaskecil').textContent = window.app.formatter.currency(totalKasKecil);
+        document.getElementById('daily-dash-restart-cut').textContent = window.app.formatter.currency(totalRestartShare);
+    },
+
+    render() {
+        this.renderDashboard();
+    },
+
+    openForm(id = null) {
+        let item = {
+            id: Date.now().toString(),
+            date: new Date().toISOString().split('T')[0],
+            cash: 0,
+            qris: 0,
+            kanovi: 0,
+            restart: 0,
+            restartSharePercent: 0,
+            kasKecil: 0,
+            kasKecilDesc: '',
+            actualCash: 0
+        };
+
+        let isEdit = false;
+        if (id) {
+            const existing = this.data.find(d => d.id === id);
+            if (existing) {
+                item = { ...existing };
+                isEdit = true;
+            }
+        } else {
+            if (this.data.length > 0) {
+                item.restartSharePercent = this.data[0].restartSharePercent || 0;
+            }
+        }
+
+        const html = `
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div>
+                    <h4 style="margin-bottom: 12px; color: var(--text-secondary); border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Sumber Dana (Metode)</h4>
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; font-weight: 500; margin-bottom: 4px;">Tanggal</label>
+                        <input type="date" id="daily-form-date" class="form-control" value="${item.date}" required>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; font-weight: 500; margin-bottom: 4px;">Total Omzet Cash (Loyverse)</label>
+                        <input type="text" id="daily-form-cash" class="form-control" value="${window.app.formatter.number(item.cash)}" oninput="window.app.daily.formatInput(this); window.app.daily.calculateForm()" placeholder="0">
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; font-weight: 500; margin-bottom: 4px;">Total Omzet QRIS (Loyverse)</label>
+                        <input type="text" id="daily-form-qris" class="form-control" value="${window.app.formatter.number(item.qris)}" oninput="window.app.daily.formatInput(this); window.app.daily.calculateForm()" placeholder="0">
+                    </div>
+
+                    <h4 style="margin-top: 24px; margin-bottom: 12px; color: var(--text-secondary); border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Distribusi Store</h4>
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; font-weight: 500; margin-bottom: 4px;">Penjualan Kanovi</label>
+                        <input type="text" id="daily-form-kanovi" class="form-control" value="${window.app.formatter.number(item.kanovi)}" oninput="window.app.daily.formatInput(this); window.app.daily.calculateForm()" placeholder="0">
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; font-weight: 500; margin-bottom: 4px;">Penjualan Restart</label>
+                        <input type="text" id="daily-form-restart" class="form-control" value="${window.app.formatter.number(item.restart)}" oninput="window.app.daily.formatInput(this); window.app.daily.calculateForm()" placeholder="0">
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; font-weight: 500; margin-bottom: 4px;">Potongan Bagi Hasil Restart (%)</label>
+                        <input type="number" id="daily-form-share-pct" class="form-control" value="${item.restartSharePercent || 0}" oninput="window.app.daily.calculateForm()" placeholder="Contoh: 20">
+                    </div>
+                </div>
+
+                <div>
+                    <h4 style="margin-bottom: 12px; color: var(--text-secondary); border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Pengeluaran (Kas Kecil)</h4>
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; font-weight: 500; margin-bottom: 4px;">Nominal Kas Kecil</label>
+                        <input type="text" id="daily-form-kaskecil" class="form-control" value="${window.app.formatter.number(item.kasKecil)}" oninput="window.app.daily.formatInput(this); window.app.daily.calculateForm()" placeholder="0">
+                        <small style="color: var(--text-muted);">Diambil dari uang Cash laci</small>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; font-weight: 500; margin-bottom: 4px;">Keterangan Kas Kecil</label>
+                        <input type="text" id="daily-form-kaskecil-desc" class="form-control" value="${item.kasKecilDesc}" placeholder="Misal: Es batu 20rb, parkir 5rb">
+                    </div>
+
+                    <h4 style="margin-top: 24px; margin-bottom: 12px; color: var(--text-secondary); border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Rekonsiliasi (Setoran)</h4>
+                    
+                    <div style="background: var(--bg-surface); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 12px;">
+                        <div style="font-size: 0.85em; color: var(--text-muted);">Uang Cash Seharusnya (Sistem)</div>
+                        <div style="font-weight: bold; font-size: 1.2em;" id="daily-form-expected">Rp 0</div>
+                        <div style="font-size: 0.8em; color: var(--text-muted);">Rumus: Omzet Cash - Kas Kecil</div>
+                    </div>
+
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; font-weight: 500; margin-bottom: 4px; color: var(--primary-color);">Uang Fisik Aktual di Laci</label>
+                        <input type="text" id="daily-form-actual" class="form-control" value="${window.app.formatter.number(isEdit ? item.actualCash : item.cash - item.kasKecil)}" oninput="window.app.daily.formatInput(this); window.app.daily.calculateForm()" placeholder="0" style="font-size: 1.2em; font-weight: bold;">
+                    </div>
+
+                    <div style="background: var(--bg-surface); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 500;">Selisih/Minus Kasir:</span>
+                        <span style="font-weight: bold; font-size: 1.2em;" id="daily-form-diff">Rp 0</span>
+                    </div>
+
+                    <div id="daily-form-warning" style="margin-top: 12px; color: var(--danger-color); font-size: 0.85em; display: none;">
+                        <i class="ph ph-warning"></i> Peringatan: Total Metode (Cash+QRIS) tidak sama dengan Total Store (Kanovi+Restart). Mohon periksa kembali.
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+                <button type="button" class="btn btn-secondary" onclick="window.app.modal.close()">Batal</button>
+                <button type="button" class="btn btn-primary" onclick="window.app.daily.save('${item.id}')"><i class="ph ph-floppy-disk"></i> Simpan Rekap</button>
+            </div>
+        `;
+
+        window.app.modal.open(isEdit ? 'Edit Rekap Harian' : 'Buat Rekap Harian', html);
+        setTimeout(() => this.calculateForm(), 100);
+    },
+
+    formatInput(el) {
+        let val = el.value.replace(/[^0-9]/g, '');
+        if (val) {
+            el.value = window.app.formatter.number(parseFloat(val));
+        } else {
+            el.value = '';
+        }
+    },
+
+    getVal(id) {
+        const el = document.getElementById(id);
+        if (!el) return 0;
+        return parseFloat(el.value.replace(/[^0-9]/g, '')) || 0;
+    },
+
+    calculateForm() {
+        const cash = this.getVal('daily-form-cash');
+        const qris = this.getVal('daily-form-qris');
+        const kanovi = this.getVal('daily-form-kanovi');
+        const restart = this.getVal('daily-form-restart');
+        const kasKecil = this.getVal('daily-form-kaskecil');
+        const actual = this.getVal('daily-form-actual');
+
+        const expected = cash - kasKecil;
+        const diff = actual - expected;
+
+        document.getElementById('daily-form-expected').textContent = window.app.formatter.currency(expected);
+        
+        const diffEl = document.getElementById('daily-form-diff');
+        diffEl.textContent = window.app.formatter.currency(diff);
+        if (diff < 0) {
+            diffEl.style.color = 'var(--danger-color)';
+        } else if (diff > 0) {
+            diffEl.style.color = 'var(--success-color)';
+        } else {
+            diffEl.style.color = 'var(--text-main)';
+        }
+
+        const warningEl = document.getElementById('daily-form-warning');
+        if (cash + qris !== kanovi + restart && (cash + qris > 0)) {
+            warningEl.style.display = 'block';
+        } else {
+            warningEl.style.display = 'none';
+        }
+    },
+
+    save(id) {
+        const date = document.getElementById('daily-form-date').value;
+        if (!date) {
+            if(window.Swal) Swal.fire('Error', 'Tanggal wajib diisi', 'error');
+            return;
+        }
+
+        const item = {
+            id: id,
+            date: date,
+            cash: this.getVal('daily-form-cash'),
+            qris: this.getVal('daily-form-qris'),
+            kanovi: this.getVal('daily-form-kanovi'),
+            restart: this.getVal('daily-form-restart'),
+            restartSharePercent: parseFloat(document.getElementById('daily-form-share-pct').value) || 0,
+            kasKecil: this.getVal('daily-form-kaskecil'),
+            kasKecilDesc: document.getElementById('daily-form-kaskecil-desc').value,
+            actualCash: this.getVal('daily-form-actual')
+        };
+
+        const existingIndex = this.data.findIndex(d => d.id === id);
+        if (existingIndex > -1) {
+            this.data[existingIndex] = item;
+        } else {
+            this.data.push(item);
+        }
+
+        this.saveData();
+        this.renderDashboard();
+        window.app.modal.close();
+        if(window.Swal) Swal.fire('Tersimpan', 'Rekap harian berhasil disimpan', 'success');
+    },
+
+    delete(id) {
+        if(window.Swal) {
+            Swal.fire({
+                title: 'Hapus rekap?',
+                text: "Data ini tidak bisa dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, hapus!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.data = this.data.filter(d => d.id !== id);
+                    this.saveData();
+                    this.renderDashboard();
+                    Swal.fire('Terhapus!', 'Data rekap dihapus.', 'success');
+                }
+            });
+        }
+    }
+};

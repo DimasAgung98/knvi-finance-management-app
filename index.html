@@ -98,16 +98,8 @@
                     <i class="ph ph-receipt"></i> <span>OPEX</span>
                     <i class="ph ph-caret-right ml-auto"></i>
                 </a>
-                <a href="#" class="nav-item" data-page="profit">
-                    <i class="ph ph-chart-line-up"></i> <span>Profit Analysis</span>
-                    <i class="ph ph-caret-right ml-auto"></i>
-                </a>
-                <a href="#" class="nav-item" data-page="sales">
-                    <i class="ph ph-calendar-check"></i> <span>Sales History</span>
-                    <i class="ph ph-caret-right ml-auto"></i>
-                </a>
-                <a href="#" class="nav-item" data-page="cashflow">
-                    <i class="ph ph-wallet"></i> <span>Buku Kas</span>
+                <a href="#" class="nav-item" data-page="daily">
+                    <i class="ph ph-calendar-check"></i> <span>Rekap Harian</span>
                     <i class="ph ph-caret-right ml-auto"></i>
                 </a>
 
@@ -792,367 +784,113 @@
                     <button class="btn btn-secondary" id="btn-profit-mode-omzet"
                         onclick="window.app.profit.setMode('omzet')">Quick Omzet Mode</button>
                 </div>
-
-                <!-- Empty State -->
-                <div id="profit-empty-state" class="empty-state" style="display: none;">
-                    <div class="empty-state-content">
-                        <i class="ph ph-chart-line-up" style="font-size: 4rem; color: var(--primary-color);"></i>
-                        <h2 style="margin: 16px 0 8px;">Profit Analysis</h2>
-                        <p style="color: var(--text-secondary); margin-bottom: 32px;" id="profit-empty-msg">Add Recipes
-                            and Operational Expenses to unlock accurate profit projections.</p>
-                    </div>
-                </div>
-
-                <div id="profit-main-view">
-
-                    <div class="dashboard-stats-grid" style="grid-template-columns: 2fr 1fr; margin-bottom: 24px;">
-                        <!-- Input Section -->
-                        <div class="card" style="display: flex; flex-direction: column; gap: 20px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <h3 style="margin: 0;">Revenue Input</h3>
-                                <div style="display: flex; gap: 8px; align-items: center;">
-                                    <input type="file" id="loyverse-upload-input" accept=".csv" style="display: none;"
-                                        onchange="window.app.profit.handleLoyverseUpload(event)">
-                                    <button class="btn btn-secondary"
-                                        onclick="document.getElementById('loyverse-upload-input').click()"
-                                        title="Import Loyverse Sales"
-                                        style="padding: 4px 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;"><i
-                                            class="ph ph-upload-simple"></i> Loyverse CSV</button>
-                                    <div
-                                        style="width: 1px; height: 20px; background: var(--border-color); margin: 0 4px;">
-                                    </div>
-                                    <button class="btn btn-primary" id="btn-period-daily" style="padding: 4px 12px;"
-                                        onclick="window.app.profit.setPeriod('Daily')">Daily</button>
-                                    <button class="btn btn-secondary" id="btn-period-monthly" style="padding: 4px 12px;"
-                                        onclick="window.app.profit.setPeriod('Monthly')">Monthly</button>
-                                </div>
-                            </div>
-
-                            <!-- Detailed Mode Input -->
-                            <div id="profit-view-detailed">
-                                <p style="color: var(--text-secondary); font-size: 0.9rem;">Masukkan estimasi penjualan
-                                    untuk tiap menu (<span class="profit-period-label">Daily</span>).</p>
-                                <div id="profit-projections-list"
-                                    style="display: flex; flex-direction: column; gap: 12px; max-height: 400px; overflow-y: auto;">
-                                    <!-- Injected via JS -->
-                                </div>
-                            </div>
-
-                            <!-- Omzet Mode Input -->
-                            <div id="profit-view-omzet" style="display:none;">
-                                <p style="color: var(--text-secondary); font-size: 0.9rem;">Masukkan estimasi total
-                                    omzet (pendapatan kotor) tanpa perlu merinci per produk.</p>
-
-                                <div style="margin-bottom: 16px;">
-                                    <label style="display:block; margin-bottom:5px; font-weight:500;">Total Omzet (<span
-                                            class="profit-period-label">Daily</span>)</label>
-                                    <input type="text" id="profit-quick-omzet" class="form-control"
-                                        placeholder="Contoh: 15.000.000"
-                                        oninput="window.app.formatter.formatInput(this); window.app.profit.calculateTotal();">
-                                </div>
-
-                                <div style="margin-bottom: 16px;">
-                                    <label style="display:block; margin-bottom:5px; font-weight:500;">Estimasi Average
-                                        Food Cost (%)</label>
-                                    <div style="display: flex; align-items: center; gap: 10px;">
-                                        <input type="number" id="profit-quick-fc" class="form-control"
-                                            style="width: 100px;" value="30" min="1" max="100"
-                                            oninput="window.app.profit.calculateTotal();">
-                                        <span style="font-weight: 600;">%</span>
-                                    </div>
-                                    <small style="color: var(--success-color); display:block; margin-top: 4px;"
-                                        id="profit-quick-fc-helper">Auto-calculated from Recipe module</small>
-                                </div>
-                            </div>
-
-                            <!-- Scenario Simulation -->
-                            <div
-                                style="border-top: 1px solid var(--border-color); padding-top: 16px; margin-top: auto;">
-                                <h4 style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px;"><i
-                                        class="ph ph-sliders"></i> Scenario Simulation</h4>
-                                <div style="display: flex; flex-direction: column; gap: 12px;">
-                                    <div style="display: flex; align-items: center; gap: 12px;">
-                                        <span
-                                            style="width: 100px; font-size: 0.85rem; color: var(--text-secondary);">Revenue</span>
-                                        <input type="range" id="sim-revenue" min="50" max="200" value="100"
-                                            style="flex: 1;" oninput="window.app.profit.simulate()">
-                                        <span id="sim-revenue-val"
-                                            style="width: 50px; text-align: right; font-weight: 600; font-size: 0.85rem;">100%</span>
-                                    </div>
-                                    <div style="display: flex; align-items: center; gap: 12px;">
-                                        <span
-                                            style="width: 100px; font-size: 0.85rem; color: var(--text-secondary);">Food
-                                            Cost</span>
-                                        <input type="range" id="sim-fc" min="50" max="150" value="100" style="flex: 1;"
-                                            oninput="window.app.profit.simulate()">
-                                        <span id="sim-fc-val"
-                                            style="width: 50px; text-align: right; font-weight: 600; font-size: 0.85rem;">100%</span>
-                                    </div>
-                                    <div style="display: flex; align-items: center; gap: 12px;">
-                                        <span
-                                            style="width: 100px; font-size: 0.85rem; color: var(--text-secondary);">OPEX</span>
-                                        <input type="range" id="sim-opex" min="50" max="150" value="100"
-                                            style="flex: 1;" oninput="window.app.profit.simulate()">
-                                        <span id="sim-opex-val"
-                                            style="width: 50px; text-align: right; font-weight: 600; font-size: 0.85rem;">100%</span>
-                                    </div>
-                                    <button class="btn btn-secondary"
-                                        style="align-self: flex-end; padding: 4px 12px; font-size: 0.85rem;"
-                                        onclick="window.app.profit.resetSimulation()">Reset Simulation</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Financial Summary -->
-                        <div class="card" style="display: flex; flex-direction: column;">
-                            <h3
-                                style="margin-bottom: 20px; text-align: center; border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
-                                Financial Summary (<span class="profit-period-label">Daily</span>)
-                            </h3>
-
-                            <div
-                                style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem;">
-                                <span>Total Revenue</span>
-                                <strong id="profit-revenue" style="color: var(--primary-color);">Rp 0</strong>
-                            </div>
-                            <div
-                                style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem; color: var(--text-secondary);">
-                                <span>Average Food Cost</span>
-                                <span id="profit-fc-pct">0%</span>
-                            </div>
-                            <div
-                                style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem; color: var(--text-secondary);">
-                                <span>Total COGS</span>
-                                <span id="profit-cogs">- Rp 0</span>
-                            </div>
-
-                            <div style="border-top: 1px dashed var(--border-color); margin: 16px 0;"></div>
-
-                            <div
-                                style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 1.05rem; font-weight: 600;">
-                                <span>Gross Profit</span>
-                                <span id="profit-gross">Rp 0</span>
-                            </div>
-                            <div
-                                style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem; color: var(--danger-color);">
-                                <span>Allocated OPEX</span>
-                                <span id="profit-opex">- Rp 0</span>
-                            </div>
-
-                            <div style="border-top: 2px solid var(--border-color); margin: 16px 0;"></div>
-
-                            <div
-                                style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 1.2rem; font-weight: 700;">
-                                <span>NET PROFIT</span>
-                                <span id="profit-net">Rp 0</span>
-                            </div>
-                            <div
-                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                                <span style="font-size: 0.85rem; color: var(--text-secondary);">Net Margin</span>
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <span style="font-weight: 600; font-size: 1.1rem;" id="profit-margin-pct">0%</span>
-                                    <span class="badge" id="profit-health-badge">Status</span>
-                                </div>
-                            </div>
-
-                            <!-- Break Even Section -->
-                            <div id="profit-breakeven-container"
-                                style="margin-top: auto; padding: 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
-                                <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 4px;">Break
-                                    Even Target (<span class="profit-period-label">Daily</span>)</div>
-                                <div style="display: flex; align-items: baseline; gap: 6px;">
-                                    <span style="font-size: 1.2rem; font-weight: 700; color: var(--primary-color);"
-                                        id="profit-breakeven-cups">0</span>
-                                    <span style="font-size: 0.85rem; color: var(--text-secondary);">Cups Required</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Charts & Insights -->
-                    <div class="dashboard-hero-grid" style="margin-bottom: 24px;">
-                        <div class="card">
-                            <h3 style="margin-bottom: 16px;">Revenue vs Costs</h3>
-                            <div style="height: 250px; position: relative;">
-                                <canvas id="profitWaterfallChart"></canvas>
-                            </div>
-                        </div>
-                        <div class="card insights-card">
-                            <h3 style="margin-bottom: 16px; display: flex; align-items: center; gap: 8px;"><i
-                                    class="ph ph-lightbulb" style="color: var(--warning-color);"></i> Business Insights
-                            </h3>
-                            <ul class="insights-list" id="profit-insights-list">
-                                <!-- Injected by JS -->
-                            </ul>
-                        </div>
-                    </div>
-
-                    <!-- Detailed Product Analysis Table -->
-                    <div class="card" id="profit-table-container">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                            <h3>Product Analysis</h3>
-                        </div>
-                        <div style="overflow-x: auto;">
-                            <table class="excel-table">
-                                <thead>
-                                    <tr>
-                                        <th style="text-align: left;">Product</th>
-                                        <th style="text-align: right;">Selling Price</th>
-                                        <th style="text-align: right;">COGS</th>
-                                        <th style="text-align: right;">Gross Profit</th>
-                                        <th style="text-align: right;">Allocated OPEX</th>
-                                        <th style="text-align: right;">Net Profit</th>
-                                        <th style="text-align: right;">Margin</th>
-                                        <th style="text-align: right;">Food Cost</th>
-                                        <th style="text-align: center;">Status</th>
-                                        <th style="text-align: left;">Recommendation</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="profit-detailed-table-body">
-                                    <!-- Injected via JS -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- Sales History Page -->
-            <div id="sales-page" class="content-area">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 24px; align-items: center;">
-                    <h2 style="margin:0;">Sales History (Manual Input)</h2>
-                    <button class="btn btn-primary" onclick="window.app.sales.openModal()"><i
-                            class="ph ph-plus-circle"></i> Add Sales Record</button>
-                </div>
-
-                <!-- Sales Chart -->
+            <!-- Daily Closing Page -->
+            <div id="daily-page" class="content-area">
+                <!-- Top Dashboard -->
                 <div class="card" style="margin-bottom: 24px;">
-                    <h3 style="margin-bottom: 16px;">Revenue vs Net Profit Trend</h3>
-                    <div style="height: 300px; position: relative;">
-                        <canvas id="salesHistoryChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Sales Table -->
-                <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
-                        <h3 style="margin: 0;">Riwayat Penjualan</h3>
+                        <h3 style="margin: 0;">Dashboard Rekap Harian</h3>
                         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                            <select id="sales-filter-type" class="form-control" style="width: auto; min-width: 140px;" onchange="window.app.sales.onFilterChange()">
+                            <select id="daily-filter-type" class="form-control" style="width: auto; min-width: 140px;" onchange="window.app.daily.onFilterChange()">
                                 <option value="today">Hari Ini</option>
                                 <option value="date">Tanggal Tertentu</option>
                                 <option value="month">Bulan Tertentu</option>
-                                <option value="all" selected>All Time</option>
+                                <option value="all" selected>Semua Waktu</option>
                             </select>
-                            <input type="date" id="sales-filter-date" class="form-control" style="display: none; width: auto;" onchange="window.app.sales.render()">
-                            <input type="month" id="sales-filter-month" class="form-control" style="display: none; width: auto;" onchange="window.app.sales.render()">
+                            <input type="date" id="daily-filter-date" class="form-control" style="display: none; width: auto;" onchange="window.app.daily.renderDashboard()">
+                            <input type="month" id="daily-filter-month" class="form-control" style="display: none; width: auto;" onchange="window.app.daily.renderDashboard()">
                         </div>
                     </div>
-                    <div style="overflow-x: auto;">
-                        <table class="excel-table">
-                            <thead>
-                                <tr>
-                                    <th>Tanggal</th>
-                                    <th style="text-align:right;">
-                                        Omzet Kanovi
-                                        <div style="font-size: 0.8em; font-weight: normal; color: var(--text-muted); text-transform: none;">Dari Loyverse</div>
-                                    </th>
-                                    <th style="text-align:right;">
-                                        Omzet Restart
-                                        <div style="font-size: 0.8em; font-weight: normal; color: var(--text-muted); text-transform: none;">Jalur Kerja Sama</div>
-                                    </th>
-                                    <th style="text-align:right; background: rgba(51, 154, 240, 0.05);">
-                                        Total Omzet
-                                        <div style="font-size: 0.8em; font-weight: normal; color: var(--text-muted); text-transform: none;">Kanovi + Restart</div>
-                                    </th>
-                                    <th style="text-align:right;">
-                                        Payment
-                                        <div style="font-size: 0.8em; font-weight: normal; color: var(--text-muted); text-transform: none;">Cash & QR Kanovi</div>
-                                    </th>
-                                    <th style="text-align:right;">
-                                        COGS
-                                        <div style="font-size: 0.8em; font-weight: normal; color: var(--text-muted); text-transform: none;">Modal Bahan Baku</div>
-                                    </th>
-                                    <th style="text-align:right;">
-                                        Gross Profit
-                                        <div style="font-size: 0.8em; font-weight: normal; color: var(--text-muted); text-transform: none;">Total Omzet - COGS</div>
-                                    </th>
-                                    <th style="text-align:right;">
-                                        Rincian Restart
-                                        <div style="font-size: 0.8em; font-weight: normal; color: var(--text-muted); text-transform: none;">Fee 25% & Setoran 75%</div>
-                                    </th>
-                                    <th style="text-align:right;">
-                                        Total Expenses
-                                        <div style="font-size: 0.8em; font-weight: normal; color: var(--text-muted); text-transform: none;">OPEX Harian + Petty Cash</div>
-                                    </th>
-                                    <th style="text-align:right; background: rgba(64, 192, 87, 0.05);">
-                                        Net Profit
-                                        <div style="font-size: 0.8em; font-weight: normal; color: var(--text-muted); text-transform: none;">Laba Bersih Akhir</div>
-                                    </th>
-                                    <th style="text-align:center;">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="sales-table-body">
-                                <!-- Data will be populated here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Cash Flow Page -->
-            <div id="cashflow-page" class="content-area">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 24px; align-items: center;">
-                    <h2 style="margin:0;">Buku Kas & Arus Dana</h2>
-                    <button class="btn btn-primary" onclick="window.app.cashflow.openModal()"><i class="ph ph-plus-circle"></i> Catat Pengeluaran</button>
-                </div>
-
-                <div class="metrics-grid" style="margin-bottom: 24px; grid-template-columns: repeat(2, 1fr);">
-                    <div class="card metric-card" style="border-left: 4px solid var(--success-color);">
-                        <span class="metric-title">Saldo Laci Kasir (Cash)</span>
-                        <span class="metric-value" id="cashflow-bal-cash" style="color: var(--success-color);">Rp 0</span>
-                        <span style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">Uang tunai fisik saat ini</span>
-                    </div>
-                    <div class="card metric-card" style="border-left: 4px solid var(--info-color);">
-                        <span class="metric-title">Saldo Mutasi Bank (QR/Transfer)</span>
-                        <span class="metric-value" id="cashflow-bal-qr" style="color: var(--info-color);">Rp 0</span>
-                        <span style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">Uang digital di rekening</span>
+                    
+                    <div class="dashboard-grid">
+                        <div class="card metric-card" style="border-left: 4px solid var(--primary-color);">
+                            <span class="metric-title">Total Omzet (Kanovi + Restart)</span>
+                            <span class="metric-value" id="daily-dash-omzet" style="color: var(--primary-color);">Rp 0</span>
+                        </div>
+                        <div class="card metric-card" style="border-left: 4px solid var(--success-color);">
+                            <span class="metric-title">Setoran Kas Fisik (Harus Ada)</span>
+                            <span class="metric-value" id="daily-dash-cash" style="color: var(--success-color);">Rp 0</span>
+                        </div>
+                        <div class="card metric-card" style="border-left: 4px solid var(--info-color);">
+                            <span class="metric-title">Uang Digital (QRIS)</span>
+                            <span class="metric-value" id="daily-dash-qris" style="color: var(--info-color);">Rp 0</span>
+                        </div>
+                        <div class="card metric-card" style="border-left: 4px solid var(--danger-color);">
+                            <span class="metric-title">Selisih/Minus Kasir</span>
+                            <span class="metric-value" id="daily-dash-shortage" style="color: var(--danger-color);">Rp 0</span>
+                        </div>
+                        <div class="card metric-card" style="border-left: 4px solid var(--warning-color);">
+                            <span class="metric-title">Kas Kecil (Pengeluaran)</span>
+                            <span class="metric-value" id="daily-dash-kaskecil" style="color: var(--warning-color);">Rp 0</span>
+                        </div>
+                        <div class="card metric-card" style="border-left: 4px solid #8e44ad;">
+                            <span class="metric-title">Estimasi Potongan Restart</span>
+                            <span class="metric-value" id="daily-dash-restart-cut" style="color: #8e44ad;">Rp 0</span>
+                        </div>
                     </div>
                 </div>
 
+                <!-- Record List -->
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
-                        <h3 style="margin: 0;">Riwayat Transaksi</h3>
-                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                            <select id="cashflow-filter-type" class="form-control" style="width: auto; min-width: 140px;" onchange="window.app.cashflow.onFilterChange()">
-                                <option value="today">Hari Ini</option>
-                                <option value="date">Tanggal Tertentu</option>
-                                <option value="month">Bulan Tertentu</option>
-                                <option value="all" selected>All Time</option>
-                            </select>
-                            <input type="date" id="cashflow-filter-date" class="form-control" style="display: none; width: auto;" onchange="window.app.cashflow.render()">
-                            <input type="month" id="cashflow-filter-month" class="form-control" style="display: none; width: auto;" onchange="window.app.cashflow.render()">
-                        </div>
+                        <h3 style="margin: 0;">Riwayat Rekap Harian</h3>
+                        <button class="btn btn-primary" onclick="window.app.daily.openForm()"><i class="ph ph-plus"></i> Buat Rekap Harian</button>
                     </div>
                     <div style="overflow-x: auto;">
                         <table class="excel-table">
                             <thead>
                                 <tr>
                                     <th style="text-align: left; width: 15%;">Tanggal</th>
-                                    <th style="text-align: left;">Keterangan</th>
-                                    <th style="text-align: center; width: 15%;">Metode</th>
-                                    <th style="text-align: right; width: 20%;">Nominal (Rp)</th>
+                                    <th style="text-align: right;">Omzet Cash</th>
+                                    <th style="text-align: right;">Omzet QRIS</th>
+                                    <th style="text-align: right;">Kanovi</th>
+                                    <th style="text-align: right;">Restart</th>
+                                    <th style="text-align: right;">Kas Kecil</th>
+                                    <th style="text-align: right;">Uang Aktual</th>
+                                    <th style="text-align: right;">Selisih</th>
                                     <th style="text-align: center; width: 10%;">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody id="cashflow-table-body">
+                            <tbody id="daily-table-body">
                                 <!-- Injected via JS -->
                             </tbody>
                         </table>
                     </div>
                 </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Global Modal Container -->
+    <div class="modal-overlay" id="global-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Modal Title</h3>
+                <button class="modal-close" onclick="window.app.modal.close()"><i class="ph ph-x"></i></button>
+            </div>
+            <div id="modal-body">
+                <!-- Content injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Print All Container -->
+    <div id="print-all-container" style="display: none;"></div>
+
+    <!-- Global Datalists -->
+    <datalist id="global-ingredients-list"></datalist>
+
+    <!-- Scripts (Utilities, Components, Pages) -->
+    <!-- Placeholders for now, will create next -->
+    <script src="js/utils/storage.js?v=4"></script>
+    <script src="js/utils/formatter.js?v=4"></script>
+    <script src="js/utils/calculator.js?v=4"></script>
+    <script src="js/utils/finance.js?v=4"></script>
+
+    <script src="js/components/modal.js?v=4"></script>
+    <script src="js/components/toast.js?v=4"></script>
+
             </div>
 
         </main>
@@ -1193,9 +931,7 @@
     <script src="js/pages/dashboard.js?v=4"></script>
     <script src="js/pages/pricing.js?v=4"></script>
     <script src="js/pages/opex.js?v=4"></script>
-    <script src="js/pages/profit.js?v=4"></script>
-    <script src="js/pages/sales.js?v=4"></script>
-    <script src="js/pages/cashflow.js?v=4"></script>
+    <script src="js/pages/daily.js?v=4"></script>
 
     <script src="js/app.js?v=4"></script>
 </body>

@@ -16,9 +16,7 @@ const App = {
         if (window.app && window.app.menu) window.app.menu.init();
         if (window.app && window.app.pricing) window.app.pricing.init();
         if (window.app && window.app.opex) window.app.opex.init();
-        if (window.app && window.app.profit) window.app.profit.init();
-        if (window.app && window.app.sales) window.app.sales.init();
-        if (window.app && window.app.cashflow) window.app.cashflow.init();
+        if (window.app && window.app.daily) window.app.daily.init();
     },
 
     initTheme() {
@@ -75,11 +73,8 @@ const App = {
                 if (targetPage === 'opex' && window.app && window.app.opex) {
                     window.app.opex.render();
                 }
-                if (targetPage === 'profit' && window.app && window.app.profit) {
-                    window.app.profit.render();
-                }
-                if (targetPage === 'sales' && window.app && window.app.sales) {
-                    window.app.sales.render();
+                if (targetPage === 'daily' && window.app && window.app.daily) {
+                    window.app.daily.render();
                 }
             });
         });
@@ -105,9 +100,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (tabId === 'recipes' && window.app.recipes) window.app.recipes.render();
         if (tabId === 'pricing' && window.app.pricing) window.app.pricing.render();
         if (tabId === 'dashboard' && window.app.dashboard) window.app.dashboard.render();
-        if (tabId === 'sales' && window.app.sales) window.app.sales.render();
         if (tabId === 'opex' && window.app.opex) window.app.opex.render();
-        if (tabId === 'cashflow' && window.app.cashflow) window.app.cashflow.render();
+        if (tabId === 'daily' && window.app.daily) window.app.daily.render();
         if (tabId === 'ingredients' && window.app.ingredients) window.app.ingredients.render();
     });
 
