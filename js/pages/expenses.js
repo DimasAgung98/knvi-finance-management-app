@@ -197,6 +197,13 @@ window.app.expenses = {
             .reduce((sum, item) => sum + item.amount, 0);
     },
 
+    // Get all expenses (Cash + Bank) for a specific date
+    getTotalExpenseForDate(dateStr) {
+        return this.data
+            .filter(d => d.date === dateStr)
+            .reduce((sum, item) => sum + item.amount, 0);
+    },
+
     getCashExpenseDescriptionsForDate(dateStr) {
         return this.data
             .filter(d => d.date === dateStr && d.source === 'Cash')
