@@ -131,6 +131,53 @@ window.app.daily = {
 
         document.getElementById('daily-dash-kaskecil').textContent = window.app.formatter.currency(totalKasKecil);
         document.getElementById('daily-dash-restart-cut').textContent = window.app.formatter.currency(totalRestartShare);
+
+        this.renderExpenses();
+    },
+
+    renderExpenses() {
+        const tbody = document.getElementById('daily-expenses-table-body');
+        if (!tbody || !window.app.expenses) return;
+
+        const type = document.getElementById('daily-filter-type')?.value || 'all';
+        const dateVal = document.getElementById('daily-filter-date')?.value;
+        const monthVal = document.getElementById('daily-filter-month')?.value;
+
+        let filtered = window.app.expenses.data.filter(item => {
+            const itemDate = new Date(item.date);
+            const today = new Date();
+
+            if (type === 'today') {
+                return itemDate.toDateString() === today.toDateString();
+            } else if (type === 'date' && dateVal) {
+                return item.date === dateVal;
+            } else if (type === 'month' && monthVal) {
+                const itemMonth = `${itemDate.getFullYear()}-${String(itemDate.getMonth() + 1).padStart(2, '0')}`;
+                return itemMonth === monthVal;
+            }
+            return true; // 'all'
+        }).sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        tbody.innerHTML = '';
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 24px;">Tidak ada pengeluaran di periode ini.</td></tr>`;
+        } else {
+            filtered.forEach(item => {
+                let sourceBadge = item.source === 'Cash' 
+                    ? `<span class="badge" style="background: var(--warning-color); color: #fff;">Laci Kasir</span>`
+                    : `<span class="badge" style="background: var(--info-color); color: #fff;">Bank/Transfer</span>`;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="text-align: left;">${item.date}</td>
+                        <td style="text-align: left; font-weight: 500;">${item.desc}</td>
+                        <td style="text-align: center;">${sourceBadge}</td>
+                        <td style="text-align: right; font-weight: bold;">${window.app.formatter.currency(item.amount)}</td>
+                    </tr>
+                `;
+            });
+        }
     },
 
     render() {
