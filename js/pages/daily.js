@@ -99,6 +99,7 @@ window.app.daily = {
                         <td style="text-align: right;">${window.app.formatter.currency(item.qris || 0)}</td>
                         <td style="text-align: right;">${window.app.formatter.currency(item.kanovi || 0)}</td>
                         <td style="text-align: right;">${window.app.formatter.currency(item.restart || 0)}</td>
+                        <td style="text-align: right; font-weight: bold; color: var(--primary-color);">${window.app.formatter.currency(omzet)}</td>
                         <td style="text-align: right; color: var(--warning-color);">
                             ${window.app.formatter.currency(kasKecil)}
                             ${kasKecilDesc ? `<div style="font-size: 0.75em; color: var(--text-muted); max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${kasKecilDesc}">${kasKecilDesc}</div>` : ''}
