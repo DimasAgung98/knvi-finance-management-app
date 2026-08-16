@@ -77,6 +77,7 @@ window.app.daily = {
             filtered.forEach(item => {
                 const omzet = (item.kanovi || 0) + (item.restart || 0); // kanovi is total loyverse
                 const kasKecil = window.app.expenses ? window.app.expenses.getTotalCashExpenseForDate(item.date) : (item.kasKecil || 0);
+                const kasKecilDesc = window.app.expenses ? window.app.expenses.getCashExpenseDescriptionsForDate(item.date) : '';
                 
                 // Restart money is not in drawer immediately
                 const setoranHarusnya = (item.cash || 0) - kasKecil;
@@ -99,7 +100,10 @@ window.app.daily = {
                         <td style="text-align: right;">${window.app.formatter.currency(item.qris || 0)}</td>
                         <td style="text-align: right;">${window.app.formatter.currency(item.kanovi || 0)}</td>
                         <td style="text-align: right;">${window.app.formatter.currency(item.restart || 0)}</td>
-                        <td style="text-align: right; color: var(--warning-color);">${window.app.formatter.currency(kasKecil)}</td>
+                        <td style="text-align: right; color: var(--warning-color);">
+                            ${window.app.formatter.currency(kasKecil)}
+                            ${kasKecilDesc ? `<div style="font-size: 0.75em; color: var(--text-muted); max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${kasKecilDesc}">${kasKecilDesc}</div>` : ''}
+                        </td>
                         <td style="text-align: right; color: ${shortage < 0 ? 'var(--danger-color)' : 'var(--success-color)'}; font-weight: bold;">${window.app.formatter.currency(setoranAktual)}</td>
                         <td style="text-align: right; color: ${shortage < 0 ? 'var(--danger-color)' : (shortage > 0 ? 'var(--success-color)' : 'var(--text-muted)')};">${window.app.formatter.currency(shortage)}</td>
                         <td style="text-align: center;">
@@ -157,7 +161,7 @@ window.app.daily = {
         const setoranHarusnya = (item.cash || 0) - kasKecil;
 
         const html = `
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="dashboard-grid" style="gap: 16px;">
                 <div>
                     <h4 style="margin-bottom: 12px; color: var(--text-secondary); border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Rincian Omzet per Brand</h4>
                     <div style="margin-bottom: 12px;">

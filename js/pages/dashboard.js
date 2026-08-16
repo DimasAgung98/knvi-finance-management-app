@@ -197,6 +197,15 @@ window.app.dashboard = {
             largestOpexName = largest.name;
         }
 
+        const now = new Date();
+        const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        let totalExpensesThisMonth = 0;
+        if (window.app.expenses && window.app.expenses.data) {
+            totalExpensesThisMonth = window.app.expenses.data
+                .filter(d => d.date && d.date.startsWith(currentMonth))
+                .reduce((sum, item) => sum + item.amount, 0);
+        }
+
         grid.innerHTML = `
             <div class="card metric-card">
                 <span class="metric-title">Total Recipes</span>
@@ -211,6 +220,10 @@ window.app.dashboard = {
                 <span class="metric-title">Total Monthly OPEX</span>
                 <span class="metric-value" style="color: var(--danger-color);">${window.app.formatter.currency(totalOpex)}</span>
                 <span style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">Top: ${largestOpexName}</span>
+            </div>
+            <div class="card metric-card">
+                <span class="metric-title">Pengeluaran Bulan Ini</span>
+                <span class="metric-value" style="color: var(--warning-color);">${window.app.formatter.currency(totalExpensesThisMonth)}</span>
             </div>
             <div class="card metric-card">
                 <span class="metric-title">Avg Est. Profit</span>

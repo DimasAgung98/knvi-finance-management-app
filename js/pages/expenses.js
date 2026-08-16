@@ -196,5 +196,12 @@ window.app.expenses = {
         return this.data
             .filter(d => d.date === dateStr && d.source === 'Cash')
             .reduce((sum, item) => sum + item.amount, 0);
+    },
+
+    getCashExpenseDescriptionsForDate(dateStr) {
+        return this.data
+            .filter(d => d.date === dateStr && d.source === 'Cash')
+            .map(d => d.desc)
+            .join(', ');
     }
 };
