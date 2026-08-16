@@ -75,21 +75,19 @@ window.app.daily = {
             tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 24px;">Belum ada rekap harian</td></tr>`;
         } else {
             filtered.forEach(item => {
-                const omzet = (item.kanovi || 0) + (item.restart || 0);
-                const cash = item.cash || 0;
-                const qris = item.qris || 0;
-                const kasKecil = item.kasKecil || 0;
+                const omzet = (item.kanovi || 0) + (item.restart || 0); // kanovi is total loyverse
+                const kasKecil = window.app.expenses ? window.app.expenses.getTotalCashExpenseForDate(item.date) : (item.kasKecil || 0);
                 
-                const setoranHarusnya = cash - kasKecil;
+                // Restart money goes into the same drawer
+                const setoranHarusnya = (item.cash || 0) + (item.restart || 0) - kasKecil;
                 const setoranAktual = item.actualCash !== undefined ? item.actualCash : setoranHarusnya;
                 const shortage = setoranAktual - setoranHarusnya;
 
-                const restartSharePercent = item.restartSharePercent || 0;
-                const restartShare = (item.restart || 0) * (restartSharePercent / 100);
+                const restartShare = (item.restart || 0) * 0.25;
 
                 totalOmzet += omzet;
                 totalCash += setoranAktual; // Total fisik yg disetor
-                totalQRIS += qris;
+                totalQRIS += (item.qris || 0);
                 totalKasKecil += kasKecil;
                 totalRestartShare += restartShare;
                 totalShortage += shortage;
@@ -97,8 +95,8 @@ window.app.daily = {
                 tbody.innerHTML += `
                     <tr>
                         <td style="text-align: left;">${item.date}</td>
-                        <td style="text-align: right;">${window.app.formatter.currency(cash)}</td>
-                        <td style="text-align: right;">${window.app.formatter.currency(qris)}</td>
+                        <td style="text-align: right;">${window.app.formatter.currency(item.cash || 0)}</td>
+                        <td style="text-align: right;">${window.app.formatter.currency(item.qris || 0)}</td>
                         <td style="text-align: right;">${window.app.formatter.currency(item.kanovi || 0)}</td>
                         <td style="text-align: right;">${window.app.formatter.currency(item.restart || 0)}</td>
                         <td style="text-align: right; color: var(--warning-color);">${window.app.formatter.currency(kasKecil)}</td>
@@ -143,9 +141,6 @@ window.app.daily = {
             qris: 0,
             kanovi: 0,
             restart: 0,
-            restartSharePercent: 0,
-            kasKecil: 0,
-            kasKecilDesc: '',
             actualCash: 0
         };
 
@@ -156,76 +151,65 @@ window.app.daily = {
                 item = { ...existing };
                 isEdit = true;
             }
-        } else {
-            if (this.data.length > 0) {
-                item.restartSharePercent = this.data[0].restartSharePercent || 0;
-            }
         }
+
+        const kasKecil = window.app.expenses ? window.app.expenses.getTotalCashExpenseForDate(item.date) : 0;
+        const setoranHarusnya = (item.cash || 0) + (item.restart || 0) - kasKecil;
 
         const html = `
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                 <div>
-                    <h4 style="margin-bottom: 12px; color: var(--text-secondary); border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Sumber Dana (Metode)</h4>
+                    <h4 style="margin-bottom: 12px; color: var(--text-secondary); border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Rincian Omzet per Brand</h4>
                     <div style="margin-bottom: 12px;">
                         <label style="display: block; font-weight: 500; margin-bottom: 4px;">Tanggal</label>
-                        <input type="date" id="daily-form-date" class="form-control" value="${item.date}" required>
+                        <input type="date" id="daily-form-date" class="form-control" value="${item.date}" onchange="window.app.daily.onDateChange()" required>
                     </div>
-                    <div style="margin-bottom: 12px;">
-                        <label style="display: block; font-weight: 500; margin-bottom: 4px;">Total Omzet Cash (Loyverse)</label>
-                        <input type="text" id="daily-form-cash" class="form-control" value="${window.app.formatter.number(item.cash)}" oninput="window.app.daily.formatInput(this); window.app.daily.calculateForm()" placeholder="0">
+                    <div style="margin-bottom: 12px; background: var(--bg-surface); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                        <strong style="color: var(--primary-color);">Kanovi (Loyverse)</strong>
+                        <div style="margin-top: 8px;">
+                            <label style="display: block; font-size: 0.85rem; margin-bottom: 4px;">Omzet Cash (Loyverse)</label>
+                            <input type="text" id="daily-form-cash" class="form-control" value="${window.app.formatter.number(item.cash)}" oninput="window.app.daily.formatInput(this); window.app.daily.calculateForm()" placeholder="0">
+                        </div>
+                        <div style="margin-top: 8px;">
+                            <label style="display: block; font-size: 0.85rem; margin-bottom: 4px;">Omzet QRIS (Loyverse)</label>
+                            <input type="text" id="daily-form-qris" class="form-control" value="${window.app.formatter.number(item.qris)}" oninput="window.app.daily.formatInput(this); window.app.daily.calculateForm()" placeholder="0">
+                        </div>
                     </div>
-                    <div style="margin-bottom: 12px;">
-                        <label style="display: block; font-weight: 500; margin-bottom: 4px;">Total Omzet QRIS (Loyverse)</label>
-                        <input type="text" id="daily-form-qris" class="form-control" value="${window.app.formatter.number(item.qris)}" oninput="window.app.daily.formatInput(this); window.app.daily.calculateForm()" placeholder="0">
-                    </div>
-
-                    <h4 style="margin-top: 24px; margin-bottom: 12px; color: var(--text-secondary); border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Distribusi Store</h4>
-                    <div style="margin-bottom: 12px;">
-                        <label style="display: block; font-weight: 500; margin-bottom: 4px;">Penjualan Kanovi</label>
-                        <input type="text" id="daily-form-kanovi" class="form-control" value="${window.app.formatter.number(item.kanovi)}" oninput="window.app.daily.formatInput(this); window.app.daily.calculateForm()" placeholder="0">
-                    </div>
-                    <div style="margin-bottom: 12px;">
-                        <label style="display: block; font-weight: 500; margin-bottom: 4px;">Penjualan Restart</label>
-                        <input type="text" id="daily-form-restart" class="form-control" value="${window.app.formatter.number(item.restart)}" oninput="window.app.daily.formatInput(this); window.app.daily.calculateForm()" placeholder="0">
-                    </div>
-                    <div style="margin-bottom: 12px;">
-                        <label style="display: block; font-weight: 500; margin-bottom: 4px;">Potongan Bagi Hasil Restart (%)</label>
-                        <input type="number" id="daily-form-share-pct" class="form-control" value="${item.restartSharePercent || 0}" oninput="window.app.daily.calculateForm()" placeholder="Contoh: 20">
+                    
+                    <div style="margin-bottom: 12px; background: var(--bg-surface); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                        <strong style="color: var(--primary-color);">Restart (Luar Loyverse)</strong>
+                        <div style="margin-top: 8px;">
+                            <label style="display: block; font-size: 0.85rem; margin-bottom: 4px;">Omzet Restart (Tunai)</label>
+                            <input type="text" id="daily-form-restart" class="form-control" value="${window.app.formatter.number(item.restart)}" oninput="window.app.daily.formatInput(this); window.app.daily.calculateForm()" placeholder="0">
+                            <small style="color: var(--text-muted); display: block; margin-top: 4px;">Bagi Hasil: Kanovi 75%, Restart 25%</small>
+                        </div>
                     </div>
                 </div>
 
                 <div>
                     <h4 style="margin-bottom: 12px; color: var(--text-secondary); border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Pengeluaran (Kas Kecil)</h4>
                     <div style="margin-bottom: 12px;">
-                        <label style="display: block; font-weight: 500; margin-bottom: 4px;">Nominal Kas Kecil</label>
-                        <input type="text" id="daily-form-kaskecil" class="form-control" value="${window.app.formatter.number(item.kasKecil)}" oninput="window.app.daily.formatInput(this); window.app.daily.calculateForm()" placeholder="0">
-                        <small style="color: var(--text-muted);">Diambil dari uang Cash laci</small>
-                    </div>
-                    <div style="margin-bottom: 12px;">
-                        <label style="display: block; font-weight: 500; margin-bottom: 4px;">Keterangan Kas Kecil</label>
-                        <input type="text" id="daily-form-kaskecil-desc" class="form-control" value="${item.kasKecilDesc}" placeholder="Misal: Es batu 20rb, parkir 5rb">
+                        <label style="display: block; font-weight: 500; margin-bottom: 4px;">Total Kas Kecil (Auto)</label>
+                        <input type="text" id="daily-form-kaskecil" class="form-control" value="${window.app.formatter.number(kasKecil)}" disabled style="background: var(--bg-surface);">
+                        <small style="color: var(--text-muted);">Terintegrasi otomatis dari menu Pengeluaran Harian di tanggal yang dipilih.</small>
                     </div>
 
-                    <h4 style="margin-top: 24px; margin-bottom: 12px; color: var(--text-secondary); border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Rekonsiliasi (Setoran)</h4>
+                    <h4 style="margin-top: 24px; margin-bottom: 12px; color: var(--text-secondary); border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Rekonsiliasi Uang Fisik</h4>
                     
                     <div style="background: var(--bg-surface); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 12px;">
-                        <div style="font-size: 0.85em; color: var(--text-muted);">Uang Cash Seharusnya (Sistem)</div>
+                        <div style="font-size: 0.85em; color: var(--text-muted);">Uang Cash Seharusnya di Laci</div>
                         <div style="font-weight: bold; font-size: 1.2em;" id="daily-form-expected">Rp 0</div>
-                        <div style="font-size: 0.8em; color: var(--text-muted);">Rumus: Omzet Cash - Kas Kecil</div>
+                        <div style="font-size: 0.8em; color: var(--text-muted);">Rumus: (Cash Loyverse + Cash Restart) - Kas Kecil</div>
                     </div>
 
                     <div style="margin-bottom: 12px;">
                         <label style="display: block; font-weight: 500; margin-bottom: 4px; color: var(--primary-color);">Uang Fisik Aktual di Laci</label>
-                        <input type="text" id="daily-form-actual" class="form-control" value="${window.app.formatter.number(isEdit ? item.actualCash : item.cash - item.kasKecil)}" oninput="window.app.daily.formatInput(this); window.app.daily.calculateForm()" placeholder="0" style="font-size: 1.2em; font-weight: bold;">
+                        <input type="text" id="daily-form-actual" class="form-control" value="${window.app.formatter.number(isEdit ? item.actualCash : setoranHarusnya)}" oninput="window.app.daily.formatInput(this); window.app.daily.calculateForm()" placeholder="0" style="font-size: 1.2em; font-weight: bold;">
                     </div>
 
                     <div style="background: var(--bg-surface); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
                         <span style="font-weight: 500;">Selisih/Minus Kasir:</span>
                         <span style="font-weight: bold; font-size: 1.2em;" id="daily-form-diff">Rp 0</span>
-                    </div>
-
-                    <div id="daily-form-warning" style="margin-top: 12px; color: var(--danger-color); font-size: 0.85em; display: none;">
-                        <i class="ph ph-warning"></i> Peringatan: Total Metode (Cash+QRIS) tidak sama dengan Total Store (Kanovi+Restart). Mohon periksa kembali.
                     </div>
                 </div>
             </div>
@@ -238,6 +222,15 @@ window.app.daily = {
 
         window.app.modal.open(isEdit ? 'Edit Rekap Harian' : 'Buat Rekap Harian', html);
         setTimeout(() => this.calculateForm(), 100);
+    },
+
+    onDateChange() {
+        const dateStr = document.getElementById('daily-form-date').value;
+        if (dateStr && window.app.expenses) {
+            const kasKecil = window.app.expenses.getTotalCashExpenseForDate(dateStr);
+            document.getElementById('daily-form-kaskecil').value = window.app.formatter.number(kasKecil);
+            this.calculateForm();
+        }
     },
 
     formatInput(el) {
@@ -258,12 +251,14 @@ window.app.daily = {
     calculateForm() {
         const cash = this.getVal('daily-form-cash');
         const qris = this.getVal('daily-form-qris');
-        const kanovi = this.getVal('daily-form-kanovi');
         const restart = this.getVal('daily-form-restart');
         const kasKecil = this.getVal('daily-form-kaskecil');
         const actual = this.getVal('daily-form-actual');
 
-        const expected = cash - kasKecil;
+        // Total Kanovi Omzet = Cash Loyverse + QRIS Loyverse
+        const kanovi = cash + qris;
+
+        const expected = (cash + restart) - kasKecil;
         const diff = actual - expected;
 
         document.getElementById('daily-form-expected').textContent = window.app.formatter.currency(expected);
@@ -277,13 +272,6 @@ window.app.daily = {
         } else {
             diffEl.style.color = 'var(--text-main)';
         }
-
-        const warningEl = document.getElementById('daily-form-warning');
-        if (cash + qris !== kanovi + restart && (cash + qris > 0)) {
-            warningEl.style.display = 'block';
-        } else {
-            warningEl.style.display = 'none';
-        }
     },
 
     save(id) {
@@ -293,16 +281,16 @@ window.app.daily = {
             return;
         }
 
+        const cash = this.getVal('daily-form-cash');
+        const qris = this.getVal('daily-form-qris');
+        
         const item = {
             id: id,
             date: date,
-            cash: this.getVal('daily-form-cash'),
-            qris: this.getVal('daily-form-qris'),
-            kanovi: this.getVal('daily-form-kanovi'),
+            cash: cash,
+            qris: qris,
+            kanovi: cash + qris, // Kanovi is total of Loyverse
             restart: this.getVal('daily-form-restart'),
-            restartSharePercent: parseFloat(document.getElementById('daily-form-share-pct').value) || 0,
-            kasKecil: this.getVal('daily-form-kaskecil'),
-            kasKecilDesc: document.getElementById('daily-form-kaskecil-desc').value,
             actualCash: this.getVal('daily-form-actual')
         };
 

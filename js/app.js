@@ -16,6 +16,7 @@ const App = {
         if (window.app && window.app.menu) window.app.menu.init();
         if (window.app && window.app.pricing) window.app.pricing.init();
         if (window.app && window.app.opex) window.app.opex.init();
+        if (window.app && window.app.expenses) window.app.expenses.init();
         if (window.app && window.app.daily) window.app.daily.init();
     },
 
@@ -101,6 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (tabId === 'pricing' && window.app.pricing) window.app.pricing.render();
         if (tabId === 'dashboard' && window.app.dashboard) window.app.dashboard.render();
         if (tabId === 'opex' && window.app.opex) window.app.opex.render();
+        if (tabId === 'expenses' && window.app.expenses) window.app.expenses.render();
         if (tabId === 'daily' && window.app.daily) window.app.daily.render();
         if (tabId === 'ingredients' && window.app.ingredients) window.app.ingredients.render();
     });

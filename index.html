@@ -102,6 +102,10 @@
                     <i class="ph ph-calendar-check"></i> <span>Rekap Harian</span>
                     <i class="ph ph-caret-right ml-auto"></i>
                 </a>
+                <a href="#" class="nav-item" data-page="expenses">
+                    <i class="ph ph-money"></i> <span>Pengeluaran Harian</span>
+                    <i class="ph ph-caret-right ml-auto"></i>
+                </a>
 
                 <div class="sidebar-section-title" style="margin-top: auto; padding-top: 24px;">Administration</div>
                 <a href="#" class="nav-item" id="themeToggle">
@@ -776,6 +780,57 @@
             </div>
 
 
+            <!-- Expenses Page -->
+            <div id="expenses-page" class="content-area">
+                <div class="card" style="margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                        <h3 style="margin: 0;">Pencatatan Pengeluaran</h3>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <select id="expense-filter-type" class="form-control" style="width: auto; min-width: 140px;" onchange="window.app.expenses.onFilterChange()">
+                                <option value="today" selected>Hari Ini</option>
+                                <option value="date">Tanggal Tertentu</option>
+                                <option value="month">Bulan Tertentu</option>
+                                <option value="all">Semua Waktu</option>
+                            </select>
+                            <input type="date" id="expense-filter-date" class="form-control" style="display: none; width: auto;" onchange="window.app.expenses.renderTable()">
+                            <input type="month" id="expense-filter-month" class="form-control" style="display: none; width: auto;" onchange="window.app.expenses.renderTable()">
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-grid" style="margin-bottom: 24px;">
+                        <div class="card metric-card" style="border-left: 4px solid var(--warning-color);">
+                            <span class="metric-title">Total Ambil dari Laci (Cash)</span>
+                            <span class="metric-value" id="expense-total-cash" style="color: var(--warning-color);">Rp 0</span>
+                        </div>
+                        <div class="card metric-card" style="border-left: 4px solid var(--info-color);">
+                            <span class="metric-title">Total dari Bank/Tabungan</span>
+                            <span class="metric-value" id="expense-total-bank" style="color: var(--info-color);">Rp 0</span>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3 style="margin: 0;">Riwayat Pengeluaran</h3>
+                        <button class="btn btn-primary" onclick="window.app.expenses.openForm()"><i class="ph ph-plus"></i> Catat Pengeluaran</button>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="excel-table">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left; width: 15%;">Tanggal</th>
+                                    <th style="text-align: left;">Keterangan</th>
+                                    <th style="text-align: center; width: 20%;">Sumber Dana</th>
+                                    <th style="text-align: right; width: 20%;">Nominal (Rp)</th>
+                                    <th style="text-align: center; width: 10%;">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expense-table-body">
+                                <!-- Injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <!-- Daily Closing Page -->
             <div id="daily-page" class="content-area">
                 <!-- Top Dashboard -->
@@ -923,6 +978,7 @@
     <script src="js/pages/dashboard.js?v=4"></script>
     <script src="js/pages/pricing.js?v=4"></script>
     <script src="js/pages/opex.js?v=4"></script>
+    <script src="js/pages/expenses.js?v=4"></script>
     <script src="js/pages/daily.js?v=4"></script>
 
     <script src="js/app.js?v=4"></script>
