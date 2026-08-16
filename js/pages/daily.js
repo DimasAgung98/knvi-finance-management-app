@@ -269,7 +269,7 @@ window.app.daily = {
             </div>
         `;
 
-        window.app.modal.open(isEdit ? 'Edit Rekap Harian' : 'Buat Rekap Harian', html);
+        window.app.modal.open(isEdit ? 'Edit Rekap Harian' : 'Buat Rekap Harian', html, '800px');
         setTimeout(() => this.calculateForm(), 100);
     },
 
@@ -363,7 +363,11 @@ window.app.daily = {
                 text: "Data ini tidak bisa dikembalikan!",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Ya, hapus!'
+                confirmButtonText: 'Ya, hapus!',
+                width: '400px',
+                customClass: {
+                    popup: 'swal-wide'
+                }
             }).then((result) => {
                 if (result.isConfirmed) {
                     this.data = this.data.filter(d => d.id !== id);

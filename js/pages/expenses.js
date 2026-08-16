@@ -127,7 +127,7 @@ window.app.expenses = {
             </div>
         `;
 
-        window.app.modal.open('Catat Pengeluaran Baru', html);
+        window.app.modal.open('Catat Pengeluaran Baru', html, '600px');
     },
 
     formatInput(el) {
