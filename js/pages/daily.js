@@ -78,8 +78,8 @@ window.app.daily = {
                 const omzet = (item.kanovi || 0) + (item.restart || 0); // kanovi is total loyverse
                 const kasKecil = window.app.expenses ? window.app.expenses.getTotalCashExpenseForDate(item.date) : (item.kasKecil || 0);
                 
-                // Restart money goes into the same drawer
-                const setoranHarusnya = (item.cash || 0) + (item.restart || 0) - kasKecil;
+                // Restart money is not in drawer immediately
+                const setoranHarusnya = (item.cash || 0) - kasKecil;
                 const setoranAktual = item.actualCash !== undefined ? item.actualCash : setoranHarusnya;
                 const shortage = setoranAktual - setoranHarusnya;
 
@@ -154,7 +154,7 @@ window.app.daily = {
         }
 
         const kasKecil = window.app.expenses ? window.app.expenses.getTotalCashExpenseForDate(item.date) : 0;
-        const setoranHarusnya = (item.cash || 0) + (item.restart || 0) - kasKecil;
+        const setoranHarusnya = (item.cash || 0) - kasKecil;
 
         const html = `
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
@@ -199,7 +199,7 @@ window.app.daily = {
                     <div style="background: var(--bg-surface); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 12px;">
                         <div style="font-size: 0.85em; color: var(--text-muted);">Uang Cash Seharusnya di Laci</div>
                         <div style="font-weight: bold; font-size: 1.2em;" id="daily-form-expected">Rp 0</div>
-                        <div style="font-size: 0.8em; color: var(--text-muted);">Rumus: (Cash Loyverse + Cash Restart) - Kas Kecil</div>
+                        <div style="font-size: 0.8em; color: var(--text-muted);">Rumus: Cash Loyverse - Kas Kecil (Omzet Restart cair H+1)</div>
                     </div>
 
                     <div style="margin-bottom: 12px;">
@@ -258,7 +258,7 @@ window.app.daily = {
         // Total Kanovi Omzet = Cash Loyverse + QRIS Loyverse
         const kanovi = cash + qris;
 
-        const expected = (cash + restart) - kasKecil;
+        const expected = cash - kasKecil;
         const diff = actual - expected;
 
         document.getElementById('daily-form-expected').textContent = window.app.formatter.currency(expected);
