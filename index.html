@@ -1058,11 +1058,44 @@
                     <!-- Info Box -->
                     <div style="background: rgba(51, 154, 240, 0.08); border: 1px solid rgba(51, 154, 240, 0.3); border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 24px; font-size: 0.85rem; color: var(--text-secondary);">
                         <i class="ph ph-info" style="color: var(--info-color); margin-right: 4px;"></i>
-                        <strong>Cara Kerja:</strong> Bonus 2% dari total omzet diberikan jika omzet harian ≥ Rp 3.000.000 dan dibagi rata ke staff bertugas. Klik tombol <strong>"Bayarkan"</strong> untuk mencatat ke Pengeluaran dan memotong saldo.
+                        <strong>Cara Kerja:</strong> Bonus 2% dari total omzet diberikan jika omzet harian &ge; Rp 3.000.000. Manager dapat menentukan siapa saja staff yang bertugas pada hari tersebut dengan tombol <strong>"Pilih Staff"</strong>. Bonus dibagi rata hanya ke staff yang bertugas.
+                    </div>
+
+                    <!-- Staff Bonus Summary Table -->
+                    <div style="margin-bottom: 32px;">
+                        <div style="margin-bottom: 12px;">
+                            <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+                                <i class="ph ph-identification-badge" style="color: var(--primary-color);"></i>
+                                Rekapitulasi Bonus per Staff
+                            </h3>
+                            <p style="color: var(--text-secondary); margin: 4px 0 0; font-size: 0.85rem;">
+                                Akumulasi total hak bonus, jumlah yang sudah dibayar, dan sisa bonus per staff pada periode filter ini.
+                            </p>
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table class="excel-table">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align: left; width: 22%;">Nama Staff</th>
+                                        <th style="text-align: center; width: 14%;">Hari Dapat Bonus</th>
+                                        <th style="text-align: right; width: 18%;">Total Hak Bonus</th>
+                                        <th style="text-align: right; width: 16%;">Sudah Dibayar</th>
+                                        <th style="text-align: right; width: 16%;">Belum Dibayar</th>
+                                        <th style="text-align: center; width: 14%;">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bonus-staff-summary-body">
+                                    <!-- Injected via JS -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                     <!-- Bonus History Table -->
-                    <h3 style="margin-bottom: 12px;">Riwayat Bonus Harian</h3>
+                    <h3 style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <i class="ph ph-calendar-check" style="color: var(--primary-color);"></i>
+                        Riwayat Bonus Harian (Berdasarkan Tanggal)
+                    </h3>
                     <div style="overflow-x: auto;">
                         <table class="excel-table">
                             <thead>
@@ -1107,25 +1140,25 @@
     <datalist id="global-ingredients-list"></datalist>
 
     <!-- Scripts (Utilities, Components, Pages) -->
-    <script src="js/utils/storage.js?v=6"></script>
-    <script src="js/utils/formatter.js?v=6"></script>
-    <script src="js/utils/calculator.js?v=6"></script>
-    <script src="js/utils/finance.js?v=6"></script>
+    <script src="js/utils/storage.js?v=7"></script>
+    <script src="js/utils/formatter.js?v=7"></script>
+    <script src="js/utils/calculator.js?v=7"></script>
+    <script src="js/utils/finance.js?v=7"></script>
 
-    <script src="js/components/modal.js?v=6"></script>
-    <script src="js/components/toast.js?v=6"></script>
+    <script src="js/components/modal.js?v=7"></script>
+    <script src="js/components/toast.js?v=7"></script>
 
-    <script src="js/pages/ingredients.js?v=6"></script>
-    <script src="js/pages/recipe.js?v=6"></script>
-    <script src="js/pages/menu.js?v=6"></script>
-    <script src="js/pages/dashboard.js?v=6"></script>
-    <script src="js/pages/pricing.js?v=6"></script>
-    <script src="js/pages/opex.js?v=6"></script>
-    <script src="js/pages/expenses.js?v=6"></script>
-    <script src="js/pages/daily.js?v=6"></script>
-    <script src="js/pages/bonus.js?v=6"></script>
+    <script src="js/pages/ingredients.js?v=7"></script>
+    <script src="js/pages/recipe.js?v=7"></script>
+    <script src="js/pages/menu.js?v=7"></script>
+    <script src="js/pages/dashboard.js?v=7"></script>
+    <script src="js/pages/pricing.js?v=7"></script>
+    <script src="js/pages/opex.js?v=7"></script>
+    <script src="js/pages/expenses.js?v=7"></script>
+    <script src="js/pages/daily.js?v=7"></script>
+    <script src="js/pages/bonus.js?v=7"></script>
 
-    <script src="js/app.js?v=6"></script>
+    <script src="js/app.js?v=7"></script>
 </body>
 
 </html>
