@@ -640,6 +640,7 @@ window.app.bonus = {
                     <option value="QRIS_Today">Potong Omzet QRIS Hari Ini</option>
                     <option value="Cash_Savings" selected>Ambil dari Tabungan Cash (Kas Kemarin / Brankas)</option>
                     <option value="Bank_Savings">Ambil dari Tabungan QRIS / Bank (Rekening Toko)</option>
+                    <option value="Restart_Savings">Ambil dari Tabungan Restart (Dana 75% Cair)</option>
                 </select>
                 <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;">
                     * Pembayaran bonus ini akan otomatis dicatat ke menu <strong>Pengeluaran</strong> dan memotong saldo sesuai sumber dana yang Anda pilih.

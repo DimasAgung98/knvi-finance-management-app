@@ -37,6 +37,7 @@ window.app.expenses = {
             case 'QRIS_Today': return 'Potong QRIS Hari Ini';
             case 'Cash_Savings': return 'Tabungan Cash (Brankas)';
             case 'Bank_Savings': return 'Tabungan QRIS / Bank';
+            case 'Restart_Savings': return 'Tabungan Restart (Dana Cair)';
             default: return norm;
         }
     },
@@ -52,6 +53,8 @@ window.app.expenses = {
                 return `<span class="badge" style="background: #e67e22; color: #fff;"><i class="ph ph-vault"></i> Tabungan Cash</span>`;
             case 'Bank_Savings':
                 return `<span class="badge" style="background: var(--info-color); color: #fff;"><i class="ph ph-bank"></i> Tabungan Bank</span>`;
+            case 'Restart_Savings':
+                return `<span class="badge" style="background: #fd7e14; color: #fff;"><i class="ph ph-hand-coins"></i> Tabungan Restart</span>`;
             default:
                 return `<span class="badge">${norm}</span>`;
         }
@@ -194,10 +197,11 @@ window.app.expenses = {
                     <option value="QRIS_Today" ${item.source === 'QRIS_Today' ? 'selected' : ''}>Potong Omzet QRIS Hari Ini</option>
                     <option value="Cash_Savings" ${item.source === 'Cash_Savings' ? 'selected' : ''}>Ambil dari Tabungan Cash (Kas Kemarin / Brankas)</option>
                     <option value="Bank_Savings" ${item.source === 'Bank_Savings' ? 'selected' : ''}>Ambil dari Tabungan QRIS / Bank (Rekening Toko)</option>
+                    <option value="Restart_Savings" ${item.source === 'Restart_Savings' ? 'selected' : ''}>Ambil dari Tabungan Restart (Dana 75% Cair)</option>
                 </select>
                 <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;">
                     * Jika memilih "Potong Cash Hari Ini", setoran uang fisik laci kasir hari tersebut akan otomatis berkurang.<br>
-                    * Jika memilih "Tabungan Cash/Bank", saldo tabungan akumulatif toko akan berkurang.
+                    * Jika memilih "Tabungan Cash/Bank/Restart", saldo tabungan akumulatif toko akan berkurang sesuai sumbernya.
                 </div>
             </div>
 
@@ -314,6 +318,18 @@ window.app.expenses = {
             .filter(d => {
                 const isBank = this.normalizeSource(d.source) === 'Bank_Savings';
                 if (!isBank) return false;
+                if (upToDate) return d.date <= upToDate;
+                return true;
+            })
+            .reduce((sum, item) => sum + item.amount, 0);
+    },
+
+    // Total expenses taken from accumulated Restart savings
+    getTotalRestartSavingsExpense(upToDate = null) {
+        return this.data
+            .filter(d => {
+                const isRestart = this.normalizeSource(d.source) === 'Restart_Savings';
+                if (!isRestart) return false;
                 if (upToDate) return d.date <= upToDate;
                 return true;
             })

@@ -940,6 +940,17 @@
                             <span class="metric-title">Saldo Tabungan QRIS / Bank</span>
                             <span class="metric-value" id="daily-dash-bank-savings" style="color: var(--info-color);">Rp 0</span>
                         </div>
+                        <div class="card metric-card" style="border-left: 4px solid #fd7e14; background: rgba(253, 126, 20, 0.05);">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <span class="metric-title">Tabungan Restart (Dana Cair)</span>
+                                <span style="font-size: 0.72rem; background: rgba(253, 126, 20, 0.15); color: #fd7e14; padding: 2px 6px; border-radius: 10px; font-weight: 600;">75% Cair</span>
+                            </div>
+                            <span class="metric-value" id="daily-dash-restart-savings" style="color: #fd7e14;">Rp 0</span>
+                            <div style="font-size: 0.78rem; color: var(--text-muted); display: flex; justify-content: space-between;">
+                                <span>Menunggu Cair:</span>
+                                <strong id="daily-dash-restart-pending" style="color: #e03131;">Rp 0</strong>
+                            </div>
+                        </div>
                         <div class="card metric-card" style="border-left: 4px solid var(--warning-color);">
                             <span class="metric-title">Kas Kecil Laci (Periode Ini)</span>
                             <span class="metric-value" id="daily-dash-kaskecil" style="color: var(--warning-color);">Rp 0</span>
@@ -961,16 +972,17 @@
                         <table class="excel-table">
                             <thead>
                                 <tr>
-                                    <th style="text-align: left; width: 15%;">Tanggal</th>
+                                    <th style="text-align: left; width: 12%;">Tanggal</th>
                                     <th style="text-align: right;">Omzet Cash</th>
                                     <th style="text-align: right;">Omzet QRIS</th>
                                     <th style="text-align: right;">Kanovi</th>
                                     <th style="text-align: right;">Restart</th>
                                     <th style="text-align: right; font-weight: bold; color: var(--primary-color);">Total Omzet</th>
+                                    <th style="text-align: center; width: 14%;">Status 75% Restart</th>
                                     <th style="text-align: right;">Kas Kecil</th>
                                     <th style="text-align: right;">Uang Aktual</th>
                                     <th style="text-align: right;">Selisih</th>
-                                    <th style="text-align: center; width: 10%;">Aksi</th>
+                                    <th style="text-align: center; width: 8%;">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody id="daily-table-body">
@@ -1140,25 +1152,25 @@
     <datalist id="global-ingredients-list"></datalist>
 
     <!-- Scripts (Utilities, Components, Pages) -->
-    <script src="js/utils/storage.js?v=7"></script>
-    <script src="js/utils/formatter.js?v=7"></script>
-    <script src="js/utils/calculator.js?v=7"></script>
-    <script src="js/utils/finance.js?v=7"></script>
+    <script src="js/utils/storage.js?v=8"></script>
+    <script src="js/utils/formatter.js?v=8"></script>
+    <script src="js/utils/calculator.js?v=8"></script>
+    <script src="js/utils/finance.js?v=8"></script>
 
-    <script src="js/components/modal.js?v=7"></script>
-    <script src="js/components/toast.js?v=7"></script>
+    <script src="js/components/modal.js?v=8"></script>
+    <script src="js/components/toast.js?v=8"></script>
 
-    <script src="js/pages/ingredients.js?v=7"></script>
-    <script src="js/pages/recipe.js?v=7"></script>
-    <script src="js/pages/menu.js?v=7"></script>
-    <script src="js/pages/dashboard.js?v=7"></script>
-    <script src="js/pages/pricing.js?v=7"></script>
-    <script src="js/pages/opex.js?v=7"></script>
-    <script src="js/pages/expenses.js?v=7"></script>
-    <script src="js/pages/daily.js?v=7"></script>
-    <script src="js/pages/bonus.js?v=7"></script>
+    <script src="js/pages/ingredients.js?v=8"></script>
+    <script src="js/pages/recipe.js?v=8"></script>
+    <script src="js/pages/menu.js?v=8"></script>
+    <script src="js/pages/dashboard.js?v=8"></script>
+    <script src="js/pages/pricing.js?v=8"></script>
+    <script src="js/pages/opex.js?v=8"></script>
+    <script src="js/pages/expenses.js?v=8"></script>
+    <script src="js/pages/daily.js?v=8"></script>
+    <script src="js/pages/bonus.js?v=8"></script>
 
-    <script src="js/app.js?v=7"></script>
+    <script src="js/app.js?v=8"></script>
 </body>
 
 </html>

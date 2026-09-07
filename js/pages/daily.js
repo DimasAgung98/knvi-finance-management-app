@@ -82,7 +82,7 @@ window.app.daily = {
         tbody.innerHTML = '';
         
         if (filtered.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: var(--text-muted); padding: 24px;">Belum ada rekap harian</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="11" style="text-align: center; color: var(--text-muted); padding: 24px;">Belum ada rekap harian</td></tr>`;
         } else {
             filtered.forEach(item => {
                 const kanoviOmzet = item.kanovi || (item.cash || 0) + (item.qris || 0);
@@ -110,6 +110,23 @@ window.app.daily = {
                 totalKanoviShare += kanoviShare;
                 totalShortage += shortage;
 
+                let restartStatusBtn = '';
+                if (restartOmzet === 0) {
+                    restartStatusBtn = `<span style="color: var(--text-muted); font-size: 0.82rem;">-</span>`;
+                } else if (item.restartCair) {
+                    restartStatusBtn = `
+                        <button type="button" class="btn" onclick="window.app.daily.toggleRestartCair('${item.id}')" style="background: rgba(43, 138, 62, 0.15); color: var(--success-color); border: 1px solid var(--success-color); border-radius: 16px; padding: 4px 8px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Klik jika ingin mengubah ke Belum Cair">
+                            <i class="ph ph-check-circle"></i> Cair (${window.app.formatter.currency(restart75)})
+                        </button>
+                    `;
+                } else {
+                    restartStatusBtn = `
+                        <button type="button" class="btn" onclick="window.app.daily.toggleRestartCair('${item.id}')" style="background: rgba(245, 159, 0, 0.15); color: #f59f00; border: 1px solid #f59f00; border-radius: 16px; padding: 4px 8px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Klik jika uang 75% Restart ini sudah cair / diterima">
+                            <i class="ph ph-clock"></i> Belum Cair (${window.app.formatter.currency(restart75)})
+                        </button>
+                    `;
+                }
+
                 tbody.innerHTML += `
                     <tr>
                         <td style="text-align: left;">${item.date}</td>
@@ -124,6 +141,7 @@ window.app.daily = {
                             ${restartOmzet > 0 ? `<div style="font-size: 0.7em; color: var(--text-muted);" title="25% Hak Restart: ${window.app.formatter.currency(restartShare)} | 75% Hak Kanovi: ${window.app.formatter.currency(restart75)}">25%: ${window.app.formatter.currency(restartShare)}</div>` : ''}
                         </td>
                         <td style="text-align: right; font-weight: bold; color: var(--primary-color);">${window.app.formatter.currency(omzet)}</td>
+                        <td style="text-align: center;">${restartStatusBtn}</td>
                         <td style="text-align: right; color: var(--warning-color);">
                             ${window.app.formatter.currency(kasKecil)}
                             ${kasKecilDesc ? `<div style="font-size: 0.75em; color: var(--text-muted); max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${kasKecilDesc}">${kasKecilDesc}</div>` : ''}
@@ -139,9 +157,11 @@ window.app.daily = {
             });
         }
 
-        // Calculate all-time savings balances (Tabungan CASH & Tabungan QRIS/Bank)
+        // Calculate all-time savings balances (Tabungan CASH, Tabungan QRIS/Bank, Tabungan Restart)
         let allTimeCashSetor = 0;
         let allTimeQrisReceived = 0;
+        let allTimeRestartSettled = 0;
+        let allTimeRestartPending = 0;
 
         this.data.forEach(item => {
             const kasKecil = window.app.expenses ? window.app.expenses.getTotalCashExpenseForDate(item.date) : (item.kasKecil || 0);
@@ -149,16 +169,28 @@ window.app.daily = {
             const setoranAktual = item.actualCash !== undefined ? item.actualCash : setoranHarusnya;
             allTimeCashSetor += setoranAktual;
             allTimeQrisReceived += (item.qris || 0);
+
+            const restartOmzet = item.restart || 0;
+            const restart75 = Math.round(restartOmzet * 0.75);
+            if (item.restartCair) {
+                allTimeRestartSettled += restart75;
+            } else {
+                allTimeRestartPending += restart75;
+            }
         });
 
         const allTimeCashSavingsExpense = window.app.expenses ? window.app.expenses.getTotalCashSavingsExpense() : 0;
         const allTimeBankSavingsExpense = window.app.expenses ? window.app.expenses.getTotalBankSavingsExpense() : 0;
+        const allTimeRestartSavingsExpense = window.app.expenses && window.app.expenses.getTotalRestartSavingsExpense 
+            ? window.app.expenses.getTotalRestartSavingsExpense() 
+            : 0;
         const allTimeQrisTodayExpense = window.app.expenses 
             ? window.app.expenses.data.filter(e => window.app.expenses.normalizeSource(e.source) === 'QRIS_Today').reduce((s, e) => s + e.amount, 0)
             : 0;
 
         const saldoTabunganCash = allTimeCashSetor - allTimeCashSavingsExpense;
         const saldoTabunganBank = allTimeQrisReceived - (allTimeBankSavingsExpense + allTimeQrisTodayExpense);
+        const saldoTabunganRestart = allTimeRestartSettled - allTimeRestartSavingsExpense;
 
         // Filtered total expenses
         const filteredExpenses = this.getFilteredExpenses();
@@ -191,6 +223,8 @@ window.app.daily = {
         setEl('daily-dash-total-expense', window.app.formatter.currency(totalFilteredExpenses));
         setEl('daily-dash-cash-savings', window.app.formatter.currency(saldoTabunganCash));
         setEl('daily-dash-bank-savings', window.app.formatter.currency(saldoTabunganBank));
+        setEl('daily-dash-restart-savings', window.app.formatter.currency(saldoTabunganRestart));
+        setEl('daily-dash-restart-pending', window.app.formatter.currency(allTimeRestartPending));
         setEl('daily-dash-kaskecil', window.app.formatter.currency(totalKasKecil));
 
         const shortageEl = document.getElementById('daily-dash-shortage');
@@ -269,7 +303,8 @@ window.app.daily = {
             qris: 0,
             kanovi: 0,
             restart: 0,
-            actualCash: 0
+            actualCash: 0,
+            restartCair: false
         };
 
         let isEdit = false;
@@ -325,6 +360,17 @@ window.app.daily = {
                             </div>
                             <div style="border-top: 1px dashed var(--border-color); margin-top: 6px; padding-top: 6px; color: var(--text-muted); font-size: 0.75rem;" id="daily-form-kanovi-total-formula">
                                 Total Omzet Kanovi: Rp 0 + Rp 0 = Rp 0
+                            </div>
+                        </div>
+
+                        <!-- Checkbox Status Pencairan 75% Restart -->
+                        <div style="background: var(--bg-surface); padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-top: 10px;">
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin: 0; font-size: 0.88rem; font-weight: 600;">
+                                <input type="checkbox" id="daily-form-restart-cair" ${item.restartCair ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer;">
+                                <span>Uang 75% Restart Sudah Cair / Diterima</span>
+                            </label>
+                            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; padding-left: 28px;">
+                                * Jika dicentang, 75% omzet restart masuk ke <strong>Tabungan Restart</strong>. Jika belum cair, tetap terhitung ke Omzet harian.
                             </div>
                         </div>
                     </div>
@@ -503,6 +549,9 @@ window.app.daily = {
         const cash = this.getVal('daily-form-cash');
         const qris = this.getVal('daily-form-qris');
         
+        const existing = this.data.find(d => d.id === id);
+        const restartCair = document.getElementById('daily-form-restart-cair')?.checked || (existing ? !!existing.restartCair : false);
+
         const item = {
             id: id,
             date: date,
@@ -510,7 +559,9 @@ window.app.daily = {
             qris: qris,
             kanovi: cash + qris, // Kanovi is total of Loyverse
             restart: this.getVal('daily-form-restart'),
-            actualCash: this.getVal('daily-form-actual')
+            actualCash: this.getVal('daily-form-actual'),
+            restartCair: restartCair,
+            restartCairAt: restartCair ? (existing?.restartCairAt || Date.now()) : null
         };
 
         const existingIndex = this.data.findIndex(d => d.id === id);
@@ -524,6 +575,41 @@ window.app.daily = {
         this.renderDashboard();
         window.app.modal.close();
         if(window.Swal) Swal.fire('Tersimpan', 'Rekap harian berhasil disimpan', 'success');
+    },
+
+    toggleRestartCair(id) {
+        const item = this.data.find(d => d.id === id);
+        if (!item) return;
+
+        item.restartCair = !item.restartCair;
+        if (item.restartCair) {
+            item.restartCairAt = Date.now();
+        } else {
+            item.restartCairAt = null;
+        }
+
+        this.saveData();
+        this.renderDashboard();
+
+        const restart75 = Math.round((item.restart || 0) * 0.75);
+        const statusText = item.restartCair ? 'SUDAH CAIR' : 'BELUM CAIR';
+
+        if (window.Swal) {
+            Swal.fire({
+                icon: item.restartCair ? 'success' : 'info',
+                title: `Status 75% Restart: ${statusText}`,
+                html: `
+                    <p>Uang 75% Restart tanggal <strong>${item.date}</strong> (${window.app.formatter.currency(restart75)})</p>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary);">
+                        ${item.restartCair ? 'Telah masuk ke saldo <strong>Tabungan Restart</strong>.' : 'Dikeluarkan dari <strong>Tabungan Restart</strong> (berstatus menunggu pencairan).'}
+                    </p>
+                `,
+                toast: true,
+                position: 'top-end',
+                timer: 2200,
+                showConfirmButton: false
+            });
+        }
     },
 
     delete(id) {
