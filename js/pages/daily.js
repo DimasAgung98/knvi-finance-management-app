@@ -9,16 +9,20 @@ window.app.daily = {
     },
 
     loadData() {
-        const stored = localStorage.getItem('knvi_daily_records');
-        if (stored) {
-            this.data = JSON.parse(stored);
+        if (window.app.storage && window.app.storage.getDailyRecords) {
+            this.data = window.app.storage.getDailyRecords();
         } else {
-            this.data = [];
+            const stored = localStorage.getItem('knvi_daily_records');
+            this.data = stored ? JSON.parse(stored) : [];
         }
     },
 
     saveData() {
-        localStorage.setItem('knvi_daily_records', JSON.stringify(this.data));
+        if (window.app.storage && window.app.storage.saveDailyRecords) {
+            window.app.storage.saveDailyRecords(this.data);
+        } else {
+            localStorage.setItem('knvi_daily_records', JSON.stringify(this.data));
+        }
     },
 
     onFilterChange() {
@@ -56,40 +60,51 @@ window.app.daily = {
     },
 
     renderDashboard() {
+        if (window.app.expenses && window.app.expenses.loadData) {
+            window.app.expenses.loadData();
+        }
         const tbody = document.getElementById('daily-table-body');
         if (!tbody) return;
 
         const filtered = this.getFilteredData();
         
         let totalOmzet = 0;
+        let totalKanovi = 0;
+        let totalRestart = 0;
         let totalCash = 0;
         let totalQRIS = 0;
         let totalKasKecil = 0;
         let totalRestartShare = 0;
+        let totalKanoviShare = 0;
         let totalShortage = 0;
 
         tbody.innerHTML = '';
         
         if (filtered.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 24px;">Belum ada rekap harian</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: var(--text-muted); padding: 24px;">Belum ada rekap harian</td></tr>`;
         } else {
             filtered.forEach(item => {
-                const omzet = (item.kanovi || 0) + (item.restart || 0); // kanovi is total loyverse
+                const kanoviOmzet = item.kanovi || (item.cash || 0) + (item.qris || 0);
+                const restartOmzet = item.restart || 0;
+                const omzet = kanoviOmzet + restartOmzet;
                 const kasKecil = window.app.expenses ? window.app.expenses.getTotalCashExpenseForDate(item.date) : (item.kasKecil || 0);
                 const kasKecilDesc = window.app.expenses ? window.app.expenses.getCashExpenseDescriptionsForDate(item.date) : '';
                 
-                // Restart money is not in drawer immediately
                 const setoranHarusnya = (item.cash || 0) - kasKecil;
                 const setoranAktual = item.actualCash !== undefined ? item.actualCash : setoranHarusnya;
                 const shortage = setoranAktual - setoranHarusnya;
 
-                const restartShare = (item.restart || 0) * 0.25;
+                const restartShare = restartOmzet * 0.25;
+                const kanoviShare = kanoviOmzet + (restartOmzet * 0.75);
 
                 totalOmzet += omzet;
+                totalKanovi += kanoviOmzet;
+                totalRestart += restartOmzet;
                 totalCash += setoranAktual; // Total fisik yg disetor
                 totalQRIS += (item.qris || 0);
                 totalKasKecil += kasKecil;
                 totalRestartShare += restartShare;
+                totalKanoviShare += kanoviShare;
                 totalShortage += shortage;
 
                 tbody.innerHTML += `
@@ -97,8 +112,8 @@ window.app.daily = {
                         <td style="text-align: left;">${item.date}</td>
                         <td style="text-align: right;">${window.app.formatter.currency(item.cash || 0)}</td>
                         <td style="text-align: right;">${window.app.formatter.currency(item.qris || 0)}</td>
-                        <td style="text-align: right;">${window.app.formatter.currency(item.kanovi || 0)}</td>
-                        <td style="text-align: right;">${window.app.formatter.currency(item.restart || 0)}</td>
+                        <td style="text-align: right;">${window.app.formatter.currency(kanoviOmzet)}</td>
+                        <td style="text-align: right;">${window.app.formatter.currency(restartOmzet)}</td>
                         <td style="text-align: right; font-weight: bold; color: var(--primary-color);">${window.app.formatter.currency(omzet)}</td>
                         <td style="text-align: right; color: var(--warning-color);">
                             ${window.app.formatter.currency(kasKecil)}
@@ -107,38 +122,72 @@ window.app.daily = {
                         <td style="text-align: right; color: ${shortage < 0 ? 'var(--danger-color)' : 'var(--success-color)'}; font-weight: bold;">${window.app.formatter.currency(setoranAktual)}</td>
                         <td style="text-align: right; color: ${shortage < 0 ? 'var(--danger-color)' : (shortage > 0 ? 'var(--success-color)' : 'var(--text-muted)')};">${window.app.formatter.currency(shortage)}</td>
                         <td style="text-align: center;">
-                            <button class="btn btn-secondary" onclick="window.app.daily.openForm('${item.id}')" style="padding: 4px 8px;"><i class="ph ph-pencil-simple"></i></button>
-                            <button class="btn btn-secondary" onclick="window.app.daily.delete('${item.id}')" style="padding: 4px 8px; color: var(--danger-color);"><i class="ph ph-trash"></i></button>
+                            <button class="btn btn-secondary" onclick="window.app.daily.openForm('${item.id}')" style="padding: 4px 8px;" title="Edit Rekap"><i class="ph ph-pencil-simple"></i></button>
+                            <button class="btn btn-secondary" onclick="window.app.daily.delete('${item.id}')" style="padding: 4px 8px; color: var(--danger-color);" title="Hapus"><i class="ph ph-trash"></i></button>
                         </td>
                     </tr>
                 `;
             });
         }
 
-        document.getElementById('daily-dash-omzet').textContent = window.app.formatter.currency(totalOmzet);
-        document.getElementById('daily-dash-cash').textContent = window.app.formatter.currency(totalCash);
-        document.getElementById('daily-dash-qris').textContent = window.app.formatter.currency(totalQRIS);
-        
-        const shortageEl = document.getElementById('daily-dash-shortage');
-        shortageEl.textContent = window.app.formatter.currency(totalShortage);
-        if (totalShortage < 0) {
-            shortageEl.style.color = 'var(--danger-color)';
-        } else if (totalShortage > 0) {
-            shortageEl.style.color = 'var(--success-color)';
-        } else {
-            shortageEl.style.color = 'var(--text-muted)';
-        }
+        // Calculate all-time savings balances (Tabungan CASH & Tabungan QRIS/Bank)
+        let allTimeCashSetor = 0;
+        let allTimeQrisReceived = 0;
 
-        document.getElementById('daily-dash-kaskecil').textContent = window.app.formatter.currency(totalKasKecil);
-        document.getElementById('daily-dash-restart-cut').textContent = window.app.formatter.currency(totalRestartShare);
+        this.data.forEach(item => {
+            const kasKecil = window.app.expenses ? window.app.expenses.getTotalCashExpenseForDate(item.date) : (item.kasKecil || 0);
+            const setoranHarusnya = (item.cash || 0) - kasKecil;
+            const setoranAktual = item.actualCash !== undefined ? item.actualCash : setoranHarusnya;
+            allTimeCashSetor += setoranAktual;
+            allTimeQrisReceived += (item.qris || 0);
+        });
+
+        const allTimeCashSavingsExpense = window.app.expenses ? window.app.expenses.getTotalCashSavingsExpense() : 0;
+        const allTimeBankSavingsExpense = window.app.expenses ? window.app.expenses.getTotalBankSavingsExpense() : 0;
+        const allTimeQrisTodayExpense = window.app.expenses 
+            ? window.app.expenses.data.filter(e => window.app.expenses.normalizeSource(e.source) === 'QRIS_Today').reduce((s, e) => s + e.amount, 0)
+            : 0;
+
+        const saldoTabunganCash = allTimeCashSetor - allTimeCashSavingsExpense;
+        const saldoTabunganBank = allTimeQrisReceived - (allTimeBankSavingsExpense + allTimeQrisTodayExpense);
+
+        // Filtered total expenses
+        const filteredExpenses = this.getFilteredExpenses();
+        const totalFilteredExpenses = filteredExpenses.reduce((sum, item) => sum + item.amount, 0);
+
+        // Update DOM elements
+        const setEl = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = val;
+        };
+
+        setEl('daily-dash-omzet', window.app.formatter.currency(totalOmzet));
+        setEl('daily-dash-kanovi', window.app.formatter.currency(totalKanovi));
+        setEl('daily-dash-restart', window.app.formatter.currency(totalRestart));
+        setEl('daily-dash-kanovi-share', window.app.formatter.currency(totalKanoviShare));
+        setEl('daily-dash-restart-cut', window.app.formatter.currency(totalRestartShare));
+        setEl('daily-dash-total-expense', window.app.formatter.currency(totalFilteredExpenses));
+        setEl('daily-dash-cash-savings', window.app.formatter.currency(saldoTabunganCash));
+        setEl('daily-dash-bank-savings', window.app.formatter.currency(saldoTabunganBank));
+        setEl('daily-dash-kaskecil', window.app.formatter.currency(totalKasKecil));
+
+        const shortageEl = document.getElementById('daily-dash-shortage');
+        if (shortageEl) {
+            shortageEl.textContent = window.app.formatter.currency(totalShortage);
+            if (totalShortage < 0) {
+                shortageEl.style.color = 'var(--danger-color)';
+            } else if (totalShortage > 0) {
+                shortageEl.style.color = 'var(--success-color)';
+            } else {
+                shortageEl.style.color = 'var(--text-muted)';
+            }
+        }
 
         this.renderExpenses();
     },
 
-    renderExpenses() {
-        const tbody = document.getElementById('daily-expenses-table-body');
-        if (!tbody || !window.app.expenses) return;
-
+    getFilteredExpenses() {
+        if (!window.app.expenses) return [];
         const type = document.getElementById('daily-filter-type')?.value || 'all';
         const dateVal = document.getElementById('daily-filter-date')?.value;
         const monthVal = document.getElementById('daily-filter-month')?.value;
@@ -146,7 +195,7 @@ window.app.daily = {
         const now = new Date();
         const todayStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
 
-        let filtered = window.app.expenses.data.filter(item => {
+        return window.app.expenses.data.filter(item => {
             if (type === 'today') {
                 return item.date === todayStr;
             } else if (type === 'date' && dateVal) {
@@ -156,16 +205,22 @@ window.app.daily = {
             }
             return true; // 'all'
         }).sort((a, b) => new Date(b.date) - new Date(a.date));
+    },
 
+    renderExpenses() {
+        const tbody = document.getElementById('daily-expenses-table-body');
+        if (!tbody || !window.app.expenses) return;
+
+        const filtered = this.getFilteredExpenses();
         tbody.innerHTML = '';
 
         if (filtered.length === 0) {
             tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 24px;">Tidak ada pengeluaran di periode ini.</td></tr>`;
         } else {
             filtered.forEach(item => {
-                let sourceBadge = item.source === 'Cash' 
-                    ? `<span class="badge" style="background: var(--warning-color); color: #fff;">Laci Kasir</span>`
-                    : `<span class="badge" style="background: var(--info-color); color: #fff;">Bank/Transfer</span>`;
+                const sourceBadge = window.app.expenses.getSourceBadge 
+                    ? window.app.expenses.getSourceBadge(item.source)
+                    : `<span class="badge">${item.source}</span>`;
 
                 tbody.innerHTML += `
                     <tr>
@@ -180,6 +235,7 @@ window.app.daily = {
     },
 
     render() {
+        this.loadData();
         this.renderDashboard();
     },
 
@@ -320,9 +376,9 @@ window.app.daily = {
                 </thead>
                 <tbody>
                     ${expenses.map(e => {
-                        let sourceBadge = e.source === 'Cash' 
-                            ? `<span class="badge" style="background: var(--warning-color); color: #fff;">Laci</span>`
-                            : `<span class="badge" style="background: var(--info-color); color: #fff;">Bank</span>`;
+                        const sourceBadge = window.app.expenses.getSourceBadge 
+                            ? window.app.expenses.getSourceBadge(e.source)
+                            : `<span class="badge">${e.source}</span>`;
                         return `
                     <tr>
                         <td>${e.desc}</td>

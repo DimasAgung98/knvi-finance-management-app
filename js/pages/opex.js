@@ -63,6 +63,7 @@ window.app.opex = {
     },
 
     render() {
+        this.loadData();
         const emptyState = document.getElementById('opex-empty-state');
         const mainView = document.getElementById('opex-main-view');
         

@@ -40,6 +40,7 @@ window.app.ingredients = {
     },
 
     render(searchQuery = '', categoryFilter = '') {
+        this.loadData();
         const listEl = document.getElementById('ingredient-list');
         if(!listEl) return;
 

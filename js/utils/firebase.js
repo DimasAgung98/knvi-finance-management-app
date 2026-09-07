@@ -35,14 +35,22 @@ if (!window.FIREBASE_CONFIG || !window.FIREBASE_CONFIG.apiKey) {
             if(loginContainer) loginContainer.style.display = 'none';
             if(appContainer) appContainer.style.display = ''; // revert to CSS defined display (flex)
             
-            // Trigger storage sync NOW
-            if (window.app.storage && window.app.storage.initFirebaseSync) {
-                window.app.storage.initFirebaseSync();
-            }
+            // Trigger storage sync NOW (retry if storage.js is still loading)
+            const startSync = () => {
+                if (window.app.storage && window.app.storage.initFirebaseSync) {
+                    window.app.storage.initFirebaseSync();
+                } else {
+                    setTimeout(startSync, 100);
+                }
+            };
+            startSync();
         } else {
             // Logged out
             if(loginContainer) loginContainer.style.display = 'flex';
             if(appContainer) appContainer.style.display = 'none';
+            if (window.app.storage && window.app.storage.updateSyncStatus) {
+                window.app.storage.updateSyncStatus('offline', 'Offline (Locked)');
+            }
         }
     });
 

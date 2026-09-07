@@ -106,6 +106,10 @@
                     <i class="ph ph-money"></i> <span>Pengeluaran Harian</span>
                     <i class="ph ph-caret-right ml-auto"></i>
                 </a>
+                <a href="#" class="nav-item" data-page="bonus">
+                    <i class="ph ph-hand-coins"></i> <span>Bonus Staff</span>
+                    <i class="ph ph-caret-right ml-auto"></i>
+                </a>
 
                 <div class="sidebar-section-title" style="margin-top: auto; padding-top: 24px;">Administration</div>
                 <a href="#" class="nav-item" id="themeToggle">
@@ -123,8 +127,14 @@
         <main class="main-content">
             <header class="top-header">
                 <h1 class="page-title" id="topPageTitle">Dashboard</h1>
-                <div class="header-actions">
-                    <!-- Actions can go here -->
+                <div class="header-actions" style="display: flex; align-items: center; gap: 10px;">
+                    <div id="cloud-sync-status" style="display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-sm); cursor: pointer;" onclick="window.app.storage.syncAll()" title="Klik untuk sinkronkan manual">
+                        <i class="ph ph-cloud-check" style="color: #2b8a3e;"></i>
+                        <span style="font-size: 0.8rem; font-weight: 500; color: var(--text-secondary);">Cloud Ready</span>
+                    </div>
+                    <button class="btn btn-secondary" onclick="window.app.storage.syncAll()" style="padding: 6px 12px; font-size: 0.85rem;" title="Sinkronkan data dengan Cloud Firebase">
+                        <i class="ph ph-arrows-clockwise"></i> Sync
+                    </button>
                 </div>
             </header>
 
@@ -799,12 +809,24 @@
                     
                     <div class="dashboard-grid" style="margin-bottom: 24px;">
                         <div class="card metric-card" style="border-left: 4px solid var(--warning-color);">
-                            <span class="metric-title">Total Ambil dari Laci (Cash)</span>
+                            <span class="metric-title">Potong Cash Laci Hari Ini</span>
                             <span class="metric-value" id="expense-total-cash" style="color: var(--warning-color);">Rp 0</span>
                         </div>
+                        <div class="card metric-card" style="border-left: 4px solid #20c997;">
+                            <span class="metric-title">Potong QRIS Hari Ini</span>
+                            <span class="metric-value" id="expense-total-qris-today" style="color: #20c997;">Rp 0</span>
+                        </div>
+                        <div class="card metric-card" style="border-left: 4px solid #e67e22;">
+                            <span class="metric-title">Ambil Tabungan Cash (Brankas)</span>
+                            <span class="metric-value" id="expense-total-cash-savings" style="color: #e67e22;">Rp 0</span>
+                        </div>
                         <div class="card metric-card" style="border-left: 4px solid var(--info-color);">
-                            <span class="metric-title">Total dari Bank/Tabungan</span>
+                            <span class="metric-title">Ambil Tabungan QRIS / Bank</span>
                             <span class="metric-value" id="expense-total-bank" style="color: var(--info-color);">Rp 0</span>
+                        </div>
+                        <div class="card metric-card" style="border-left: 4px solid var(--danger-color);">
+                            <span class="metric-title">Total Pengeluaran (Filter)</span>
+                            <span class="metric-value" id="expense-grand-total" style="color: var(--danger-color);">Rp 0</span>
                         </div>
                     </div>
 
@@ -854,25 +876,41 @@
                             <span class="metric-title">Total Omzet (Kanovi + Restart)</span>
                             <span class="metric-value" id="daily-dash-omzet" style="color: var(--primary-color);">Rp 0</span>
                         </div>
-                        <div class="card metric-card" style="border-left: 4px solid var(--success-color);">
-                            <span class="metric-title">Setoran Kas Fisik (Harus Ada)</span>
-                            <span class="metric-value" id="daily-dash-cash" style="color: var(--success-color);">Rp 0</span>
+                        <div class="card metric-card" style="border-left: 4px solid #339af0;">
+                            <span class="metric-title">Omzet Kanovi (Loyverse)</span>
+                            <span class="metric-value" id="daily-dash-kanovi" style="color: #339af0;">Rp 0</span>
                         </div>
-                        <div class="card metric-card" style="border-left: 4px solid var(--info-color);">
-                            <span class="metric-title">Uang Digital (QRIS)</span>
-                            <span class="metric-value" id="daily-dash-qris" style="color: var(--info-color);">Rp 0</span>
-                        </div>
-                        <div class="card metric-card" style="border-left: 4px solid var(--danger-color);">
-                            <span class="metric-title">Selisih/Minus Kasir</span>
-                            <span class="metric-value" id="daily-dash-shortage" style="color: var(--danger-color);">Rp 0</span>
-                        </div>
-                        <div class="card metric-card" style="border-left: 4px solid var(--warning-color);">
-                            <span class="metric-title">Kas Kecil (Pengeluaran)</span>
-                            <span class="metric-value" id="daily-dash-kaskecil" style="color: var(--warning-color);">Rp 0</span>
+                        <div class="card metric-card" style="border-left: 4px solid #f59f00;">
+                            <span class="metric-title">Omzet Restart (Tunai)</span>
+                            <span class="metric-value" id="daily-dash-restart" style="color: #f59f00;">Rp 0</span>
                         </div>
                         <div class="card metric-card" style="border-left: 4px solid #8e44ad;">
-                            <span class="metric-title">Estimasi Potongan Restart</span>
-                            <span class="metric-value" id="daily-dash-restart-cut" style="color: #8e44ad;">Rp 0</span>
+                            <span class="metric-title">Bagi Hasil Kanovi (75% R + KNVI)</span>
+                            <span class="metric-value" id="daily-dash-kanovi-share" style="color: #8e44ad;">Rp 0</span>
+                        </div>
+                        <div class="card metric-card" style="border-left: 4px solid #e03131;">
+                            <span class="metric-title">Bagi Hasil Restart (25% Restart)</span>
+                            <span class="metric-value" id="daily-dash-restart-cut" style="color: #e03131;">Rp 0</span>
+                        </div>
+                        <div class="card metric-card" style="border-left: 4px solid var(--danger-color);">
+                            <span class="metric-title">Total Pengeluaran (Periode Ini)</span>
+                            <span class="metric-value" id="daily-dash-total-expense" style="color: var(--danger-color);">Rp 0</span>
+                        </div>
+                        <div class="card metric-card" style="border-left: 4px solid var(--success-color); background: rgba(43, 138, 62, 0.05);">
+                            <span class="metric-title">Saldo Tabungan CASH (Tersedia)</span>
+                            <span class="metric-value" id="daily-dash-cash-savings" style="color: var(--success-color);">Rp 0</span>
+                        </div>
+                        <div class="card metric-card" style="border-left: 4px solid var(--info-color); background: rgba(51, 154, 240, 0.05);">
+                            <span class="metric-title">Saldo Tabungan QRIS / Bank</span>
+                            <span class="metric-value" id="daily-dash-bank-savings" style="color: var(--info-color);">Rp 0</span>
+                        </div>
+                        <div class="card metric-card" style="border-left: 4px solid var(--warning-color);">
+                            <span class="metric-title">Kas Kecil Laci (Periode Ini)</span>
+                            <span class="metric-value" id="daily-dash-kaskecil" style="color: var(--warning-color);">Rp 0</span>
+                        </div>
+                        <div class="card metric-card" style="border-left: 4px solid #fab005;">
+                            <span class="metric-title">Selisih/Minus Kasir (Periode)</span>
+                            <span class="metric-value" id="daily-dash-shortage" style="color: #fab005;">Rp 0</span>
                         </div>
                     </div>
                 </div>
@@ -927,6 +965,89 @@
                 </div>
             </div>
 
+            <!-- Bonus Staff Page -->
+            <div id="bonus-page" class="content-area">
+                <!-- Staff Management Card -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <h3 style="margin: 0;">Manajemen Staff</h3>
+                            <p style="color: var(--text-secondary); margin: 4px 0 0; font-size: 0.9rem;">Kelola daftar nama staff yang bekerja di toko.</p>
+                        </div>
+                    </div>
+                    <div id="staff-chips-container" style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;">
+                        <!-- Injected via JS -->
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="text" id="new-staff-name-input" class="form-control" placeholder="Nama staff baru..." style="max-width: 250px;" onkeydown="if(event.key === 'Enter') window.app.bonus.addStaff()">
+                        <button class="btn btn-primary" onclick="window.app.bonus.addStaff()"><i class="ph ph-plus"></i> Tambah Staff</button>
+                    </div>
+                </div>
+
+                <!-- Bonus Dashboard Card -->
+                <div class="card" style="margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                        <h3 style="margin: 0;">Dashboard Bonus Staff</h3>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <select id="bonus-filter-type" class="form-control" style="width: auto; min-width: 140px;" onchange="window.app.bonus.onFilterChange()">
+                                <option value="today">Hari Ini</option>
+                                <option value="date">Tanggal Tertentu</option>
+                                <option value="month">Bulan Tertentu</option>
+                                <option value="all" selected>Semua Waktu</option>
+                            </select>
+                            <input type="date" id="bonus-filter-date" class="form-control" style="display: none; width: auto;" onchange="window.app.bonus.renderDashboard()">
+                            <input type="month" id="bonus-filter-month" class="form-control" style="display: none; width: auto;" onchange="window.app.bonus.renderDashboard()">
+                        </div>
+                    </div>
+
+                    <div class="dashboard-grid" style="margin-bottom: 24px;">
+                        <div class="card metric-card" style="border-left: 4px solid var(--success-color);">
+                            <span class="metric-title">Hari Capai Target (≥ Rp 3 Juta)</span>
+                            <span class="metric-value" id="bonus-dash-days" style="color: var(--success-color);">0 Hari</span>
+                        </div>
+                        <div class="card metric-card" style="border-left: 4px solid var(--primary-color);">
+                            <span class="metric-title">Total Bonus Terkumpul (2%)</span>
+                            <span class="metric-value" id="bonus-dash-accumulated" style="color: var(--primary-color);">Rp 0</span>
+                        </div>
+                        <div class="card metric-card" style="border-left: 4px solid var(--warning-color);">
+                            <span class="metric-title">Bonus Belum Dibayar</span>
+                            <span class="metric-value" id="bonus-dash-pending" style="color: var(--warning-color);">Rp 0</span>
+                        </div>
+                        <div class="card metric-card" style="border-left: 4px solid #20c997;">
+                            <span class="metric-title">Bonus Sudah Dibayar</span>
+                            <span class="metric-value" id="bonus-dash-paid" style="color: #20c997;">Rp 0</span>
+                        </div>
+                    </div>
+
+                    <!-- Info Box -->
+                    <div style="background: rgba(51, 154, 240, 0.08); border: 1px solid rgba(51, 154, 240, 0.3); border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 24px; font-size: 0.85rem; color: var(--text-secondary);">
+                        <i class="ph ph-info" style="color: var(--info-color); margin-right: 4px;"></i>
+                        <strong>Cara Kerja:</strong> Bonus 2% dari total omzet diberikan jika omzet harian ≥ Rp 3.000.000 dan dibagi rata ke staff bertugas. Klik tombol <strong>"Bayarkan"</strong> untuk mencatat ke Pengeluaran dan memotong saldo.
+                    </div>
+
+                    <!-- Bonus History Table -->
+                    <h3 style="margin-bottom: 12px;">Riwayat Bonus Harian</h3>
+                    <div style="overflow-x: auto;">
+                        <table class="excel-table">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left; width: 14%;">Tanggal</th>
+                                    <th style="text-align: right;">Total Omzet</th>
+                                    <th style="text-align: center;">Status Target</th>
+                                    <th style="text-align: right;">Bonus (2%)</th>
+                                    <th style="text-align: left;">Staff Bertugas</th>
+                                    <th style="text-align: center;">Status Bayar</th>
+                                    <th style="text-align: center; width: 15%;">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bonus-table-body">
+                                <!-- Injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         </main>
     </div>
 
@@ -950,59 +1071,25 @@
     <datalist id="global-ingredients-list"></datalist>
 
     <!-- Scripts (Utilities, Components, Pages) -->
-    <!-- Placeholders for now, will create next -->
-    <script src="js/utils/storage.js?v=4"></script>
-    <script src="js/utils/formatter.js?v=4"></script>
-    <script src="js/utils/calculator.js?v=4"></script>
-    <script src="js/utils/finance.js?v=4"></script>
+    <script src="js/utils/storage.js?v=5"></script>
+    <script src="js/utils/formatter.js?v=5"></script>
+    <script src="js/utils/calculator.js?v=5"></script>
+    <script src="js/utils/finance.js?v=5"></script>
 
-    <script src="js/components/modal.js?v=4"></script>
-    <script src="js/components/toast.js?v=4"></script>
+    <script src="js/components/modal.js?v=5"></script>
+    <script src="js/components/toast.js?v=5"></script>
 
-            </div>
+    <script src="js/pages/ingredients.js?v=5"></script>
+    <script src="js/pages/recipe.js?v=5"></script>
+    <script src="js/pages/menu.js?v=5"></script>
+    <script src="js/pages/dashboard.js?v=5"></script>
+    <script src="js/pages/pricing.js?v=5"></script>
+    <script src="js/pages/opex.js?v=5"></script>
+    <script src="js/pages/expenses.js?v=5"></script>
+    <script src="js/pages/daily.js?v=5"></script>
+    <script src="js/pages/bonus.js?v=5"></script>
 
-        </main>
-    </div>
-
-    <!-- Global Modal Container -->
-    <div class="modal-overlay" id="global-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modal-title">Modal Title</h3>
-                <button class="modal-close" onclick="window.app.modal.close()"><i class="ph ph-x"></i></button>
-            </div>
-            <div id="modal-body">
-                <!-- Content injected via JS -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Print All Container -->
-    <div id="print-all-container" style="display: none;"></div>
-
-    <!-- Global Datalists -->
-    <datalist id="global-ingredients-list"></datalist>
-
-    <!-- Scripts (Utilities, Components, Pages) -->
-    <!-- Placeholders for now, will create next -->
-    <script src="js/utils/storage.js?v=4"></script>
-    <script src="js/utils/formatter.js?v=4"></script>
-    <script src="js/utils/calculator.js?v=4"></script>
-    <script src="js/utils/finance.js?v=4"></script>
-
-    <script src="js/components/modal.js?v=4"></script>
-    <script src="js/components/toast.js?v=4"></script>
-
-    <script src="js/pages/ingredients.js?v=4"></script>
-    <script src="js/pages/recipe.js?v=4"></script>
-    <script src="js/pages/menu.js?v=4"></script>
-    <script src="js/pages/dashboard.js?v=4"></script>
-    <script src="js/pages/pricing.js?v=4"></script>
-    <script src="js/pages/opex.js?v=4"></script>
-    <script src="js/pages/expenses.js?v=4"></script>
-    <script src="js/pages/daily.js?v=4"></script>
-
-    <script src="js/app.js?v=4"></script>
+    <script src="js/app.js?v=5"></script>
 </body>
 
 </html>

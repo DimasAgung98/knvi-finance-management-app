@@ -28,6 +28,7 @@ window.app.recipes = {
     },
 
     render(searchQuery = '') {
+        this.loadData();
         const listEl = document.getElementById('recipe-list');
         if(!listEl) return;
         
