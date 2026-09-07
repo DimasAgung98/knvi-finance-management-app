@@ -74,8 +74,9 @@ window.app.daily = {
         let totalCash = 0;
         let totalQRIS = 0;
         let totalKasKecil = 0;
-        let totalRestartShare = 0;
-        let totalKanoviShare = 0;
+        let totalRestartShare = 0; // 25% dari restart
+        let totalRestart75 = 0;    // 75% dari restart
+        let totalKanoviShare = 0;  // kanovi + 75% restart
         let totalShortage = 0;
 
         tbody.innerHTML = '';
@@ -94,8 +95,9 @@ window.app.daily = {
                 const setoranAktual = item.actualCash !== undefined ? item.actualCash : setoranHarusnya;
                 const shortage = setoranAktual - setoranHarusnya;
 
-                const restartShare = restartOmzet * 0.25;
-                const kanoviShare = kanoviOmzet + (restartOmzet * 0.75);
+                const restartShare = Math.round(restartOmzet * 0.25);
+                const restart75 = Math.round(restartOmzet * 0.75);
+                const kanoviShare = kanoviOmzet + restart75;
 
                 totalOmzet += omzet;
                 totalKanovi += kanoviOmzet;
@@ -104,6 +106,7 @@ window.app.daily = {
                 totalQRIS += (item.qris || 0);
                 totalKasKecil += kasKecil;
                 totalRestartShare += restartShare;
+                totalRestart75 += restart75;
                 totalKanoviShare += kanoviShare;
                 totalShortage += shortage;
 
@@ -112,8 +115,14 @@ window.app.daily = {
                         <td style="text-align: left;">${item.date}</td>
                         <td style="text-align: right;">${window.app.formatter.currency(item.cash || 0)}</td>
                         <td style="text-align: right;">${window.app.formatter.currency(item.qris || 0)}</td>
-                        <td style="text-align: right;">${window.app.formatter.currency(kanoviOmzet)}</td>
-                        <td style="text-align: right;">${window.app.formatter.currency(restartOmzet)}</td>
+                        <td style="text-align: right;">
+                            ${window.app.formatter.currency(kanoviOmzet)}
+                            ${restart75 > 0 ? `<div style="font-size: 0.7em; color: #8e44ad;" title="Omzet Kanovi + 75% Restart (+${window.app.formatter.currency(restart75)})">+75% R: ${window.app.formatter.currency(kanoviShare)}</div>` : ''}
+                        </td>
+                        <td style="text-align: right;">
+                            ${window.app.formatter.currency(restartOmzet)}
+                            ${restartOmzet > 0 ? `<div style="font-size: 0.7em; color: var(--text-muted);" title="25% Hak Restart: ${window.app.formatter.currency(restartShare)} | 75% Hak Kanovi: ${window.app.formatter.currency(restart75)}">25%: ${window.app.formatter.currency(restartShare)}</div>` : ''}
+                        </td>
                         <td style="text-align: right; font-weight: bold; color: var(--primary-color);">${window.app.formatter.currency(omzet)}</td>
                         <td style="text-align: right; color: var(--warning-color);">
                             ${window.app.formatter.currency(kasKecil)}
@@ -166,6 +175,19 @@ window.app.daily = {
         setEl('daily-dash-restart', window.app.formatter.currency(totalRestart));
         setEl('daily-dash-kanovi-share', window.app.formatter.currency(totalKanoviShare));
         setEl('daily-dash-restart-cut', window.app.formatter.currency(totalRestartShare));
+
+        // Detail Rincian Bagi Hasil Kanovi (Omzet KNVI + 75% Restart)
+        setEl('daily-dash-kanovi-base', window.app.formatter.currency(totalKanovi));
+        setEl('daily-dash-restart-75', '+ ' + window.app.formatter.currency(totalRestart75));
+        const formulaEl = document.getElementById('daily-dash-kanovi-formula');
+        if (formulaEl) {
+            formulaEl.textContent = `${window.app.formatter.currency(totalKanovi)} + ${window.app.formatter.currency(totalRestart75)} = ${window.app.formatter.currency(totalKanoviShare)}`;
+        }
+
+        // Detail Rincian Bagi Hasil Restart (25% Hak Restart & 75% Kanovi)
+        setEl('daily-dash-restart-total-detail', window.app.formatter.currency(totalRestart));
+        setEl('daily-dash-restart-25-sub', window.app.formatter.currency(totalRestartShare));
+        setEl('daily-dash-restart-75-sub', window.app.formatter.currency(totalRestart75));
         setEl('daily-dash-total-expense', window.app.formatter.currency(totalFilteredExpenses));
         setEl('daily-dash-cash-savings', window.app.formatter.currency(saldoTabunganCash));
         setEl('daily-dash-bank-savings', window.app.formatter.currency(saldoTabunganBank));
@@ -291,7 +313,20 @@ window.app.daily = {
                             <label>Omzet Restart (Tunai)</label>
                             <input type="text" id="daily-form-restart" class="form-control" value="${window.app.formatter.number(item.restart || 0)}" oninput="window.app.daily.formatInput(this); window.app.daily.calculateForm()" placeholder="0">
                         </div>
-                        <div style="font-size: 0.8em; color: var(--text-muted);">Bagi Hasil: Kanovi 75%, Restart 25%</div>
+                        <div style="font-size: 0.8em; color: var(--text-muted); margin-bottom: 8px;">Bagi Hasil: Kanovi 75%, Restart 25%</div>
+                        <div id="daily-form-restart-breakdown" style="background: var(--bg-surface); padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-size: 0.82rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span style="color: var(--text-secondary);">75% Bagian Kanovi:</span>
+                                <strong id="daily-form-restart-75" style="color: #8e44ad;">Rp 0</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span style="color: var(--text-secondary);">25% Bagian Restart:</span>
+                                <strong id="daily-form-restart-25" style="color: #e03131;">Rp 0</strong>
+                            </div>
+                            <div style="border-top: 1px dashed var(--border-color); margin-top: 6px; padding-top: 6px; color: var(--text-muted); font-size: 0.75rem;" id="daily-form-kanovi-total-formula">
+                                Total Omzet Kanovi: Rp 0 + Rp 0 = Rp 0
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -423,20 +458,38 @@ window.app.daily = {
 
         // Total Kanovi Omzet = Cash Loyverse + QRIS Loyverse
         const kanovi = cash + qris;
+        const restart75 = Math.round(restart * 0.75);
+        const restart25 = Math.round(restart * 0.25);
+        const kanoviTotalShare = kanovi + restart75;
 
         const expected = cash - kasKecil;
         const diff = actual - expected;
 
-        document.getElementById('daily-form-expected').textContent = window.app.formatter.currency(expected);
+        const elExpected = document.getElementById('daily-form-expected');
+        if (elExpected) elExpected.textContent = window.app.formatter.currency(expected);
+
+        // Update live breakdown Restart & Bagi Hasil dalam modal
+        const elR75 = document.getElementById('daily-form-restart-75');
+        if (elR75) elR75.textContent = window.app.formatter.currency(restart75);
+
+        const elR25 = document.getElementById('daily-form-restart-25');
+        if (elR25) elR25.textContent = window.app.formatter.currency(restart25);
+
+        const elFormula = document.getElementById('daily-form-kanovi-total-formula');
+        if (elFormula) {
+            elFormula.innerHTML = `Total Hak KNVI: <strong>${window.app.formatter.currency(kanovi)}</strong> + 75% R (<strong>${window.app.formatter.currency(restart75)}</strong>) = <strong style="color: #8e44ad;">${window.app.formatter.currency(kanoviTotalShare)}</strong>`;
+        }
         
         const diffEl = document.getElementById('daily-form-diff');
-        diffEl.textContent = window.app.formatter.currency(diff);
-        if (diff < 0) {
-            diffEl.style.color = 'var(--danger-color)';
-        } else if (diff > 0) {
-            diffEl.style.color = 'var(--success-color)';
-        } else {
-            diffEl.style.color = 'var(--text-main)';
+        if (diffEl) {
+            diffEl.textContent = window.app.formatter.currency(diff);
+            if (diff < 0) {
+                diffEl.style.color = 'var(--danger-color)';
+            } else if (diff > 0) {
+                diffEl.style.color = 'var(--success-color)';
+            } else {
+                diffEl.style.color = 'var(--text-primary)';
+            }
         }
     },
 
