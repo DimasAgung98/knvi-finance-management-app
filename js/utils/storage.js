@@ -103,14 +103,30 @@ window.app.storage = {
         const hasId = (item) => item && typeof item === 'object' && ('id' in item);
         if (local.some(hasId) || remote.some(hasId)) {
             const map = new Map();
-            // Put local items first
-            local.forEach(item => {
-                if (item && item.id) map.set(String(item.id), item);
-            });
-            // Overwrite with remote items or append new remote items
-            remote.forEach(item => {
-                if (item && item.id) map.set(String(item.id), item);
-            });
+            const nameToId = new Map();
+
+            const addItem = (item) => {
+                if (!item || !item.id) return;
+                const idStr = String(item.id);
+                // If item has a string name (e.g. staff), check if name already mapped to another ID
+                if (typeof item.name === 'string') {
+                    const cleanName = item.name.trim().toLowerCase();
+                    if (cleanName) {
+                        if (nameToId.has(cleanName)) {
+                            // Already have an item with this name, update existing item instead of duplicating
+                            const existingId = nameToId.get(cleanName);
+                            map.set(existingId, { ...map.get(existingId), ...item, id: existingId });
+                            return;
+                        }
+                        nameToId.set(cleanName, idStr);
+                    }
+                }
+                map.set(idStr, item);
+            };
+
+            // Put local items first, then merge remote items
+            local.forEach(addItem);
+            remote.forEach(addItem);
             return Array.from(map.values());
         }
 

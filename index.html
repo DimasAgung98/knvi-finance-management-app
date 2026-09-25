@@ -873,7 +873,7 @@
                     
                     <div class="dashboard-grid">
                         <div class="card metric-card" style="border-left: 4px solid var(--primary-color);">
-                            <span class="metric-title">Total Omzet (Kanovi + Restart)</span>
+                            <span class="metric-title">Total Omzet (Kanovi + Restart + Playbox)</span>
                             <span class="metric-value" id="daily-dash-omzet" style="color: var(--primary-color);">Rp 0</span>
                         </div>
                         <div class="card metric-card" style="border-left: 4px solid #339af0;">
@@ -884,10 +884,31 @@
                             <span class="metric-title">Omzet Restart (Tunai)</span>
                             <span class="metric-value" id="daily-dash-restart" style="color: #f59f00;">Rp 0</span>
                         </div>
+                        <div class="card metric-card" style="border-left: 4px solid #1098ad;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <span class="metric-title" style="font-weight: 600;">Pixel Playbox</span>
+                                <span style="font-size: 0.72rem; background: rgba(16, 152, 173, 0.15); color: #1098ad; padding: 2px 6px; border-radius: 10px; font-weight: 600;">Kerjasama</span>
+                            </div>
+                            <span class="metric-value" id="daily-dash-playbox" style="color: #1098ad; margin-bottom: 6px;">Rp 0</span>
+                            <div style="background: rgba(16, 152, 173, 0.08); border: 1px solid rgba(16, 152, 173, 0.2); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.82rem; display: flex; flex-direction: column; gap: 4px;">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: var(--text-secondary);">Tiket:</span>
+                                    <strong id="daily-dash-playbox-qty" style="color: var(--text-primary);">0 Reg • 0 Pkt</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: var(--text-secondary);">Hak Playbox (disetor):</span>
+                                    <strong id="daily-dash-playbox-share" style="color: #e03131;">Rp 0</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; padding-top: 4px; border-top: 1px dashed rgba(16, 152, 173, 0.25);">
+                                    <span style="color: var(--text-secondary);">Hak Kanovi (laba):</span>
+                                    <strong id="daily-dash-playbox-kanovi" style="color: #2b8a3e;">+ Rp 0</strong>
+                                </div>
+                            </div>
+                        </div>
                         <div class="card metric-card" style="border-left: 4px solid #8e44ad;">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                                <span class="metric-title" style="font-weight: 600;">Total Hak Kanovi (KNVI + 75% R)</span>
-                                <span style="font-size: 0.75rem; background: rgba(142, 68, 173, 0.15); color: #8e44ad; padding: 2px 8px; border-radius: 12px; font-weight: 600;">75% Restart</span>
+                                <span class="metric-title" style="font-weight: 600;">Total Hak Kanovi</span>
+                                <span style="font-size: 0.75rem; background: rgba(142, 68, 173, 0.15); color: #8e44ad; padding: 2px 8px; border-radius: 12px; font-weight: 600;">KNVI + 75%R + PB</span>
                             </div>
                             <span class="metric-value" id="daily-dash-kanovi-share" style="color: #8e44ad; margin-bottom: 6px;">Rp 0</span>
                             
@@ -900,9 +921,13 @@
                                     <span style="color: var(--text-secondary);">75% dari Restart:</span>
                                     <strong id="daily-dash-restart-75" style="color: #8e44ad;">+ Rp 0</strong>
                                 </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span style="color: var(--text-secondary);">Hak Kanovi dari Playbox:</span>
+                                    <strong id="daily-dash-playbox-sub" style="color: #1098ad;">+ Rp 0</strong>
+                                </div>
                                 <div style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed rgba(142, 68, 173, 0.25); display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem;">
-                                    <span style="color: var(--text-muted);">Rumus Omzet:</span>
-                                    <span id="daily-dash-kanovi-formula" style="font-weight: 600; color: var(--text-primary);">Rp 0 + Rp 0 = Rp 0</span>
+                                    <span style="color: var(--text-muted);">Rumus:</span>
+                                    <span id="daily-dash-kanovi-formula" style="font-weight: 600; color: var(--text-primary);">Rp 0 + Rp 0 + Rp 0 = Rp 0</span>
                                 </div>
                             </div>
                         </div>
@@ -972,17 +997,18 @@
                         <table class="excel-table">
                             <thead>
                                 <tr>
-                                    <th style="text-align: left; width: 12%;">Tanggal</th>
+                                    <th style="text-align: left; width: 10%;">Tanggal</th>
                                     <th style="text-align: right;">Omzet Cash</th>
                                     <th style="text-align: right;">Omzet QRIS</th>
                                     <th style="text-align: right;">Kanovi</th>
                                     <th style="text-align: right;">Restart</th>
+                                    <th style="text-align: right; color: #1098ad;">Playbox</th>
                                     <th style="text-align: right; font-weight: bold; color: var(--primary-color);">Total Omzet</th>
-                                    <th style="text-align: center; width: 14%;">Status 75% Restart</th>
+                                    <th style="text-align: center; width: 13%;">Status 75% Restart</th>
                                     <th style="text-align: right;">Kas Kecil</th>
                                     <th style="text-align: right;">Uang Aktual</th>
                                     <th style="text-align: right;">Selisih</th>
-                                    <th style="text-align: center; width: 8%;">Aksi</th>
+                                    <th style="text-align: center; width: 7%;">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody id="daily-table-body">
@@ -1152,25 +1178,25 @@
     <datalist id="global-ingredients-list"></datalist>
 
     <!-- Scripts (Utilities, Components, Pages) -->
-    <script src="js/utils/storage.js?v=8"></script>
-    <script src="js/utils/formatter.js?v=8"></script>
-    <script src="js/utils/calculator.js?v=8"></script>
-    <script src="js/utils/finance.js?v=8"></script>
+    <script src="js/utils/storage.js?v=9"></script>
+    <script src="js/utils/formatter.js?v=9"></script>
+    <script src="js/utils/calculator.js?v=9"></script>
+    <script src="js/utils/finance.js?v=9"></script>
 
-    <script src="js/components/modal.js?v=8"></script>
-    <script src="js/components/toast.js?v=8"></script>
+    <script src="js/components/modal.js?v=9"></script>
+    <script src="js/components/toast.js?v=9"></script>
 
-    <script src="js/pages/ingredients.js?v=8"></script>
-    <script src="js/pages/recipe.js?v=8"></script>
-    <script src="js/pages/menu.js?v=8"></script>
-    <script src="js/pages/dashboard.js?v=8"></script>
-    <script src="js/pages/pricing.js?v=8"></script>
-    <script src="js/pages/opex.js?v=8"></script>
-    <script src="js/pages/expenses.js?v=8"></script>
-    <script src="js/pages/daily.js?v=8"></script>
-    <script src="js/pages/bonus.js?v=8"></script>
+    <script src="js/pages/ingredients.js?v=9"></script>
+    <script src="js/pages/recipe.js?v=9"></script>
+    <script src="js/pages/menu.js?v=9"></script>
+    <script src="js/pages/dashboard.js?v=9"></script>
+    <script src="js/pages/pricing.js?v=9"></script>
+    <script src="js/pages/opex.js?v=9"></script>
+    <script src="js/pages/expenses.js?v=9"></script>
+    <script src="js/pages/daily.js?v=9"></script>
+    <script src="js/pages/bonus.js?v=9"></script>
 
-    <script src="js/app.js?v=8"></script>
+    <script src="js/app.js?v=9"></script>
 </body>
 
 </html>

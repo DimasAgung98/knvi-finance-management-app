@@ -71,37 +71,60 @@ window.app.daily = {
         let totalOmzet = 0;
         let totalKanovi = 0;
         let totalRestart = 0;
+        let totalPlaybox = 0;
+        let totalPlayboxShare = 0;
+        let totalPlayboxKanoviShare = 0;
+        let totalPlayboxRegQty = 0;
+        let totalPlayboxPktQty = 0;
         let totalCash = 0;
         let totalQRIS = 0;
         let totalKasKecil = 0;
         let totalRestartShare = 0; // 25% dari restart
         let totalRestart75 = 0;    // 75% dari restart
-        let totalKanoviShare = 0;  // kanovi + 75% restart
+        let totalKanoviShare = 0;  // kanovi + 75% restart + playbox kanovi
         let totalShortage = 0;
 
         tbody.innerHTML = '';
         
         if (filtered.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="11" style="text-align: center; color: var(--text-muted); padding: 24px;">Belum ada rekap harian</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="12" style="text-align: center; color: var(--text-muted); padding: 24px;">Belum ada rekap harian</td></tr>`;
         } else {
             filtered.forEach(item => {
                 const kanoviOmzet = item.kanovi || (item.cash || 0) + (item.qris || 0);
                 const restartOmzet = item.restart || 0;
-                const omzet = kanoviOmzet + restartOmzet;
+                const playboxReg = item.playboxRegularQty || 0;
+                const playboxPkt = item.playboxPaketQty || 0;
+                const playboxOmzet = item.playboxOmzet !== undefined 
+                    ? item.playboxOmzet 
+                    : ((playboxReg * 30000) + (playboxPkt * 50000));
+                const playboxShare = item.playboxShare !== undefined 
+                    ? item.playboxShare 
+                    : ((playboxReg * 20000) + (playboxPkt * 30000));
+                const playboxKanoviShare = item.playboxKanoviShare !== undefined 
+                    ? item.playboxKanoviShare 
+                    : ((playboxReg * 10000) + (playboxPkt * 20000));
+
+                const omzet = kanoviOmzet + restartOmzet + playboxOmzet;
                 const kasKecil = window.app.expenses ? window.app.expenses.getTotalCashExpenseForDate(item.date) : (item.kasKecil || 0);
                 const kasKecilDesc = window.app.expenses ? window.app.expenses.getCashExpenseDescriptionsForDate(item.date) : '';
                 
-                const setoranHarusnya = (item.cash || 0) - kasKecil;
+                const playboxDrawerCash = item.playboxCashInDrawer !== false ? playboxOmzet : 0;
+                const setoranHarusnya = (item.cash || 0) + playboxDrawerCash - kasKecil;
                 const setoranAktual = item.actualCash !== undefined ? item.actualCash : setoranHarusnya;
                 const shortage = setoranAktual - setoranHarusnya;
 
                 const restartShare = Math.round(restartOmzet * 0.25);
                 const restart75 = Math.round(restartOmzet * 0.75);
-                const kanoviShare = kanoviOmzet + restart75;
+                const kanoviShare = kanoviOmzet + restart75 + playboxKanoviShare;
 
                 totalOmzet += omzet;
                 totalKanovi += kanoviOmzet;
                 totalRestart += restartOmzet;
+                totalPlaybox += playboxOmzet;
+                totalPlayboxShare += playboxShare;
+                totalPlayboxKanoviShare += playboxKanoviShare;
+                totalPlayboxRegQty += playboxReg;
+                totalPlayboxPktQty += playboxPkt;
                 totalCash += setoranAktual; // Total fisik yg disetor
                 totalQRIS += (item.qris || 0);
                 totalKasKecil += kasKecil;
@@ -134,11 +157,18 @@ window.app.daily = {
                         <td style="text-align: right;">${window.app.formatter.currency(item.qris || 0)}</td>
                         <td style="text-align: right;">
                             ${window.app.formatter.currency(kanoviOmzet)}
-                            ${restart75 > 0 ? `<div style="font-size: 0.7em; color: #8e44ad;" title="Omzet Kanovi + 75% Restart (+${window.app.formatter.currency(restart75)})">+75% R: ${window.app.formatter.currency(kanoviShare)}</div>` : ''}
+                            ${(restart75 > 0 || playboxKanoviShare > 0) ? `<div style="font-size: 0.7em; color: #8e44ad;" title="Hak Kanovi = Loyverse + 75% Restart + Porsi Playbox">Hak KNVI: ${window.app.formatter.currency(kanoviShare)}</div>` : ''}
                         </td>
                         <td style="text-align: right;">
                             ${window.app.formatter.currency(restartOmzet)}
                             ${restartOmzet > 0 ? `<div style="font-size: 0.7em; color: var(--text-muted);" title="25% Hak Restart: ${window.app.formatter.currency(restartShare)} | 75% Hak Kanovi: ${window.app.formatter.currency(restart75)}">25%: ${window.app.formatter.currency(restartShare)}</div>` : ''}
+                        </td>
+                        <td style="text-align: right;">
+                            ${playboxOmzet > 0 ? `
+                                <strong style="color: #1098ad;">${window.app.formatter.currency(playboxOmzet)}</strong>
+                                <div style="font-size: 0.7em; color: var(--text-muted);">${playboxReg} Reg, ${playboxPkt} Pkt</div>
+                                <div style="font-size: 0.7em; color: #2b8a3e;" title="Hak Kanovi: ${window.app.formatter.currency(playboxKanoviShare)} | Hak Playbox: ${window.app.formatter.currency(playboxShare)}">KNVI: +${window.app.formatter.currency(playboxKanoviShare)}</div>
+                            ` : `<span style="color: var(--text-muted); font-size: 0.82rem;">-</span>`}
                         </td>
                         <td style="text-align: right; font-weight: bold; color: var(--primary-color);">${window.app.formatter.currency(omzet)}</td>
                         <td style="text-align: center;">${restartStatusBtn}</td>
@@ -165,7 +195,11 @@ window.app.daily = {
 
         this.data.forEach(item => {
             const kasKecil = window.app.expenses ? window.app.expenses.getTotalCashExpenseForDate(item.date) : (item.kasKecil || 0);
-            const setoranHarusnya = (item.cash || 0) - kasKecil;
+            const playboxReg = item.playboxRegularQty || 0;
+            const playboxPkt = item.playboxPaketQty || 0;
+            const playboxOmzet = item.playboxOmzet !== undefined ? item.playboxOmzet : ((playboxReg * 30000) + (playboxPkt * 50000));
+            const playboxDrawerCash = item.playboxCashInDrawer !== false ? playboxOmzet : 0;
+            const setoranHarusnya = (item.cash || 0) + playboxDrawerCash - kasKecil;
             const setoranAktual = item.actualCash !== undefined ? item.actualCash : setoranHarusnya;
             allTimeCashSetor += setoranAktual;
             allTimeQrisReceived += (item.qris || 0);
@@ -205,15 +239,22 @@ window.app.daily = {
         setEl('daily-dash-omzet', window.app.formatter.currency(totalOmzet));
         setEl('daily-dash-kanovi', window.app.formatter.currency(totalKanovi));
         setEl('daily-dash-restart', window.app.formatter.currency(totalRestart));
+        setEl('daily-dash-playbox', window.app.formatter.currency(totalPlaybox));
+        setEl('daily-dash-playbox-qty', `${totalPlayboxRegQty} Reg \u2022 ${totalPlayboxPktQty} Pkt`);
+        setEl('daily-dash-playbox-share', window.app.formatter.currency(totalPlayboxShare));
+        setEl('daily-dash-playbox-kanovi', '+ ' + window.app.formatter.currency(totalPlayboxKanoviShare));
+
         setEl('daily-dash-kanovi-share', window.app.formatter.currency(totalKanoviShare));
         setEl('daily-dash-restart-cut', window.app.formatter.currency(totalRestartShare));
 
-        // Detail Rincian Bagi Hasil Kanovi (Omzet KNVI + 75% Restart)
+        // Detail Rincian Bagi Hasil Kanovi (Omzet KNVI + 75% Restart + Playbox KNVI)
         setEl('daily-dash-kanovi-base', window.app.formatter.currency(totalKanovi));
         setEl('daily-dash-restart-75', '+ ' + window.app.formatter.currency(totalRestart75));
+        const pbSub = document.getElementById('daily-dash-playbox-sub');
+        if (pbSub) pbSub.textContent = '+ ' + window.app.formatter.currency(totalPlayboxKanoviShare);
         const formulaEl = document.getElementById('daily-dash-kanovi-formula');
         if (formulaEl) {
-            formulaEl.textContent = `${window.app.formatter.currency(totalKanovi)} + ${window.app.formatter.currency(totalRestart75)} = ${window.app.formatter.currency(totalKanoviShare)}`;
+            formulaEl.textContent = `${window.app.formatter.currency(totalKanovi)} + ${window.app.formatter.currency(totalRestart75)} + ${window.app.formatter.currency(totalPlayboxKanoviShare)} = ${window.app.formatter.currency(totalKanoviShare)}`;
         }
 
         // Detail Rincian Bagi Hasil Restart (25% Hak Restart & 75% Kanovi)
@@ -303,6 +344,12 @@ window.app.daily = {
             qris: 0,
             kanovi: 0,
             restart: 0,
+            playboxRegularQty: 0,
+            playboxPaketQty: 0,
+            playboxOmzet: 0,
+            playboxShare: 0,
+            playboxKanoviShare: 0,
+            playboxCashInDrawer: true,
             actualCash: 0,
             restartCair: false
         };
@@ -318,7 +365,11 @@ window.app.daily = {
 
         const kasKecil = window.app.expenses ? window.app.expenses.getTotalCashExpenseForDate(item.date) : 0;
         const totalExpense = window.app.expenses ? window.app.expenses.getTotalExpenseForDate(item.date) : 0;
-        const setoranHarusnya = (item.cash || 0) - kasKecil;
+        const pbReg = item.playboxRegularQty || 0;
+        const pbPkt = item.playboxPaketQty || 0;
+        const pbOmzet = item.playboxOmzet !== undefined ? item.playboxOmzet : ((pbReg * 30000) + (pbPkt * 50000));
+        const pbDrawerCash = item.playboxCashInDrawer !== false ? pbOmzet : 0;
+        const setoranHarusnya = (item.cash || 0) + pbDrawerCash - kasKecil;
 
         const html = `
             <div class="dashboard-grid" style="gap: 16px;">
@@ -359,7 +410,7 @@ window.app.daily = {
                                 <strong id="daily-form-restart-25" style="color: #e03131;">Rp 0</strong>
                             </div>
                             <div style="border-top: 1px dashed var(--border-color); margin-top: 6px; padding-top: 6px; color: var(--text-muted); font-size: 0.75rem;" id="daily-form-kanovi-total-formula">
-                                Total Omzet Kanovi: Rp 0 + Rp 0 = Rp 0
+                                Total Hak Kanovi: Rp 0 + Rp 0 = Rp 0
                             </div>
                         </div>
 
@@ -372,6 +423,48 @@ window.app.daily = {
                             <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; padding-left: 28px;">
                                 * Jika dicentang, 75% omzet restart masuk ke <strong>Tabungan Restart</strong>. Jika belum cair, tetap terhitung ke Omzet harian.
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Pixel Playbox Section -->
+                    <div style="margin-bottom: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <h5 style="color: #1098ad; margin: 0;"><i class="ph ph-game-controller"></i> Pixel Playbox</h5>
+                            <span style="font-size: 0.72rem; background: rgba(16, 152, 173, 0.15); color: #1098ad; padding: 2px 6px; border-radius: 10px; font-weight: 600;">Kerjasama</span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                            <div>
+                                <label style="font-size: 0.82rem; font-weight: 500;">Tiket Regular (Qty)</label>
+                                <input type="number" min="0" id="daily-form-playbox-reg" class="form-control" value="${item.playboxRegularQty || 0}" oninput="window.app.daily.calculateForm()" placeholder="0">
+                                <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">@ 30k (20k PB / 10k KNVI)</div>
+                            </div>
+                            <div>
+                                <label style="font-size: 0.82rem; font-weight: 500;">Tiket Paket (Qty)</label>
+                                <input type="number" min="0" id="daily-form-playbox-pkt" class="form-control" value="${item.playboxPaketQty || 0}" oninput="window.app.daily.calculateForm()" placeholder="0">
+                                <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">@ 50k (30k PB / 20k KNVI)</div>
+                            </div>
+                        </div>
+
+                        <div id="daily-form-playbox-breakdown" style="background: var(--bg-surface); padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-size: 0.82rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span style="color: var(--text-secondary);">Total Omzet Playbox:</span>
+                                <strong id="daily-form-playbox-total" style="color: #1098ad;">Rp 0</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span style="color: var(--text-secondary);">Hak Playbox (Setoran):</span>
+                                <strong id="daily-form-playbox-share" style="color: #e03131;">Rp 0</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; padding-top: 4px; border-top: 1px dashed var(--border-color);">
+                                <span style="color: var(--text-secondary);">Hak Kanovi (Laba):</span>
+                                <strong id="daily-form-playbox-kanovi" style="color: #2b8a3e;">+ Rp 0</strong>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 8px;">
+                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; cursor: pointer; color: var(--text-secondary); margin: 0;">
+                                <input type="checkbox" id="daily-form-playbox-cash-drawer" ${item.playboxCashInDrawer !== false ? 'checked' : ''} onchange="window.app.daily.calculateForm()" style="width: 16px; height: 16px; cursor: pointer;">
+                                <span>Uang tiket Playbox diterima kasir secara Tunai (masuk laci)</span>
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -400,7 +493,7 @@ window.app.daily = {
                     <div style="background: var(--bg-surface); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 12px;">
                         <div style="font-size: 0.85em; color: var(--text-muted);">Uang Cash Seharusnya di Laci</div>
                         <div style="font-weight: bold; font-size: 1.2em;" id="daily-form-expected">Rp 0</div>
-                        <div style="font-size: 0.8em; color: var(--text-muted);">Rumus: Cash Loyverse - Kas Kecil (Omzet Restart cair H+1)</div>
+                        <div style="font-size: 0.8em; color: var(--text-muted);">Rumus: Cash Loyverse + Playbox Tunai (jika ada) - Kas Kecil</div>
                     </div>
 
                     <div style="margin-bottom: 12px;">
@@ -502,13 +595,21 @@ window.app.daily = {
         const kasKecil = this.getVal('daily-form-kaskecil');
         const actual = this.getVal('daily-form-actual');
 
+        const playboxReg = parseInt(document.getElementById('daily-form-playbox-reg')?.value) || 0;
+        const playboxPkt = parseInt(document.getElementById('daily-form-playbox-pkt')?.value) || 0;
+        const playboxOmzet = (playboxReg * 30000) + (playboxPkt * 50000);
+        const playboxShare = (playboxReg * 20000) + (playboxPkt * 30000); // 20k reg, 30k pkt ke Playbox
+        const playboxKanoviShare = (playboxReg * 10000) + (playboxPkt * 20000); // 10k reg, 20k pkt ke Kanovi
+        const playboxCashInDrawer = document.getElementById('daily-form-playbox-cash-drawer')?.checked ?? true;
+
         // Total Kanovi Omzet = Cash Loyverse + QRIS Loyverse
         const kanovi = cash + qris;
         const restart75 = Math.round(restart * 0.75);
         const restart25 = Math.round(restart * 0.25);
-        const kanoviTotalShare = kanovi + restart75;
+        const kanoviTotalShare = kanovi + restart75 + playboxKanoviShare;
 
-        const expected = cash - kasKecil;
+        const playboxDrawerCash = playboxCashInDrawer ? playboxOmzet : 0;
+        const expected = cash + playboxDrawerCash - kasKecil;
         const diff = actual - expected;
 
         const elExpected = document.getElementById('daily-form-expected');
@@ -521,9 +622,17 @@ window.app.daily = {
         const elR25 = document.getElementById('daily-form-restart-25');
         if (elR25) elR25.textContent = window.app.formatter.currency(restart25);
 
+        // Update live breakdown Playbox
+        const elPBTotal = document.getElementById('daily-form-playbox-total');
+        if (elPBTotal) elPBTotal.textContent = window.app.formatter.currency(playboxOmzet);
+        const elPBShare = document.getElementById('daily-form-playbox-share');
+        if (elPBShare) elPBShare.textContent = window.app.formatter.currency(playboxShare);
+        const elPBKanovi = document.getElementById('daily-form-playbox-kanovi');
+        if (elPBKanovi) elPBKanovi.textContent = '+ ' + window.app.formatter.currency(playboxKanoviShare);
+
         const elFormula = document.getElementById('daily-form-kanovi-total-formula');
         if (elFormula) {
-            elFormula.innerHTML = `Total Hak KNVI: <strong>${window.app.formatter.currency(kanovi)}</strong> + 75% R (<strong>${window.app.formatter.currency(restart75)}</strong>) = <strong style="color: #8e44ad;">${window.app.formatter.currency(kanoviTotalShare)}</strong>`;
+            elFormula.innerHTML = `Total Hak KNVI: <strong>${window.app.formatter.currency(kanovi)}</strong> + 75% R (<strong>${window.app.formatter.currency(restart75)}</strong>) + PB (<strong>${window.app.formatter.currency(playboxKanoviShare)}</strong>) = <strong style="color: #8e44ad;">${window.app.formatter.currency(kanoviTotalShare)}</strong>`;
         }
         
         const diffEl = document.getElementById('daily-form-diff');
@@ -552,6 +661,13 @@ window.app.daily = {
         const existing = this.data.find(d => d.id === id);
         const restartCair = document.getElementById('daily-form-restart-cair')?.checked || (existing ? !!existing.restartCair : false);
 
+        const playboxReg = parseInt(document.getElementById('daily-form-playbox-reg')?.value) || 0;
+        const playboxPkt = parseInt(document.getElementById('daily-form-playbox-pkt')?.value) || 0;
+        const playboxOmzet = (playboxReg * 30000) + (playboxPkt * 50000);
+        const playboxShare = (playboxReg * 20000) + (playboxPkt * 30000);
+        const playboxKanoviShare = (playboxReg * 10000) + (playboxPkt * 20000);
+        const playboxCashInDrawer = document.getElementById('daily-form-playbox-cash-drawer')?.checked ?? true;
+
         const item = {
             id: id,
             date: date,
@@ -559,6 +675,12 @@ window.app.daily = {
             qris: qris,
             kanovi: cash + qris, // Kanovi is total of Loyverse
             restart: this.getVal('daily-form-restart'),
+            playboxRegularQty: playboxReg,
+            playboxPaketQty: playboxPkt,
+            playboxOmzet: playboxOmzet,
+            playboxShare: playboxShare,
+            playboxKanoviShare: playboxKanoviShare,
+            playboxCashInDrawer: playboxCashInDrawer,
             actualCash: this.getVal('daily-form-actual'),
             restartCair: restartCair,
             restartCairAt: restartCair ? (existing?.restartCairAt || Date.now()) : null
@@ -573,6 +695,9 @@ window.app.daily = {
 
         this.saveData();
         this.renderDashboard();
+        if (window.app.bonus && window.app.bonus.renderDashboard) {
+            window.app.bonus.renderDashboard();
+        }
         window.app.modal.close();
         if(window.Swal) Swal.fire('Tersimpan', 'Rekap harian berhasil disimpan', 'success');
     },

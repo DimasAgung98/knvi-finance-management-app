@@ -11,19 +11,62 @@ window.app.bonus = {
         this.render();
     },
 
+    getDailyTotalOmzet(daily) {
+        if (!daily) return 0;
+        const kanovi = daily.kanovi || (daily.cash || 0) + (daily.qris || 0);
+        const restart = daily.restart || 0;
+        const playbox = daily.playboxOmzet !== undefined 
+            ? daily.playboxOmzet 
+            : (((daily.playboxRegularQty || 0) * 30000) + ((daily.playboxPaketQty || 0) * 50000));
+        return kanovi + restart + playbox;
+    },
+
     loadData() {
         if (window.app.storage) {
             this.staffList = window.app.storage.getStaff() || [];
             this.bonusRecords = window.app.storage.getStaffBonuses() || [];
         }
-        // If staff is completely empty on first run, add default template staff
-        if (this.staffList.length === 0) {
+
+        // Deduplicate staff list by name (case-insensitive) and id
+        const seenNames = new Set();
+        const seenIds = new Set();
+        const cleanedList = [];
+        let hadDuplicates = false;
+
+        for (const staff of (this.staffList || [])) {
+            if (!staff || !staff.name) continue;
+            const cleanName = staff.name.trim().toLowerCase();
+            const idStr = String(staff.id || '');
+            if (seenNames.has(cleanName) || (idStr && seenIds.has(idStr))) {
+                hadDuplicates = true;
+                continue;
+            }
+            seenNames.add(cleanName);
+            if (idStr) seenIds.add(idStr);
+            cleanedList.push({
+                id: staff.id || ('stf_' + Math.random().toString(36).substr(2, 9)),
+                name: staff.name.trim()
+            });
+        }
+
+        // Default template staff only seeded ONCE on very first launch ever
+        const isSeeded = localStorage.getItem('knvi_staff_seeded');
+        if (cleanedList.length === 0 && !isSeeded) {
             this.staffList = [
                 { id: 'stf_1', name: 'Barista 1' },
                 { id: 'stf_2', name: 'Barista 2' },
                 { id: 'stf_3', name: 'Cashier' }
             ];
+            localStorage.setItem('knvi_staff_seeded', 'true');
             this.saveStaffList();
+        } else {
+            this.staffList = cleanedList;
+            if (cleanedList.length > 0) {
+                localStorage.setItem('knvi_staff_seeded', 'true');
+            }
+            if (hadDuplicates) {
+                this.saveStaffList();
+            }
         }
     },
 
@@ -93,7 +136,7 @@ window.app.bonus = {
             tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 32px;">Belum ada data omzet harian pada periode ini. Silakan catat di menu <strong>Rekap Harian</strong> terlebih dahulu.</td></tr>`;
         } else {
             filteredDaily.forEach(daily => {
-                const omzet = (daily.kanovi || (daily.cash || 0) + (daily.qris || 0)) + (daily.restart || 0);
+                const omzet = this.getDailyTotalOmzet(daily);
                 const targetReached = omzet >= this.TARGET_OMZET;
                 const bonusAmount = targetReached ? Math.round(omzet * this.BONUS_PERCENTAGE) : 0;
 
@@ -211,7 +254,7 @@ window.app.bonus = {
             let totalPending = 0;
 
             filteredDaily.forEach(daily => {
-                const omzet = (daily.kanovi || (daily.cash || 0) + (daily.qris || 0)) + (daily.restart || 0);
+                const omzet = this.getDailyTotalOmzet(daily);
                 const targetReached = omzet >= this.TARGET_OMZET;
                 if (targetReached) {
                     const bonusAmount = Math.round(omzet * this.BONUS_PERCENTAGE);
@@ -285,7 +328,7 @@ window.app.bonus = {
         let totalPending = 0;
 
         filteredDaily.forEach(daily => {
-            const omzet = (daily.kanovi || (daily.cash || 0) + (daily.qris || 0)) + (daily.restart || 0);
+            const omzet = this.getDailyTotalOmzet(daily);
             const targetReached = omzet >= this.TARGET_OMZET;
             if (targetReached) {
                 const bonusAmount = Math.round(omzet * this.BONUS_PERCENTAGE);
@@ -411,12 +454,20 @@ window.app.bonus = {
             return;
         }
 
+        // Check if staff name already exists (case-insensitive)
+        const cleanName = name.toLowerCase();
+        if (this.staffList.some(s => s.name.trim().toLowerCase() === cleanName)) {
+            if (window.Swal) Swal.fire('Sudah Terdaftar', `Staff dengan nama "${name}" sudah ada di daftar.`, 'warning');
+            return;
+        }
+
         const newStaff = {
             id: 'stf_' + Date.now().toString(36),
             name: name
         };
 
         this.staffList.push(newStaff);
+        localStorage.setItem('knvi_staff_seeded', 'true');
         this.saveStaffList();
         input.value = '';
         this.renderStaffManagement();
@@ -439,6 +490,14 @@ window.app.bonus = {
         const staff = this.staffList.find(s => s.id === id);
         const name = staff ? staff.name : 'Staff';
 
+        const doDelete = () => {
+            this.staffList = this.staffList.filter(s => s.id !== id);
+            localStorage.setItem('knvi_staff_seeded', 'true');
+            this.saveStaffList();
+            this.renderStaffManagement();
+            this.renderDashboard();
+        };
+
         if (window.Swal) {
             Swal.fire({
                 title: `Hapus ${name}?`,
@@ -448,25 +507,19 @@ window.app.bonus = {
                 confirmButtonText: 'Ya, Hapus'
             }).then(result => {
                 if (result.isConfirmed) {
-                    this.staffList = this.staffList.filter(s => s.id !== id);
-                    this.saveStaffList();
-                    this.renderStaffManagement();
-                    this.renderDashboard();
+                    doDelete();
                     Swal.fire('Terhapus', `${name} telah dihapus.`, 'success');
                 }
             });
         } else {
-            this.staffList = this.staffList.filter(s => s.id !== id);
-            this.saveStaffList();
-            this.renderStaffManagement();
-            this.renderDashboard();
+            doDelete();
         }
     },
 
     openStaffRoster(dateStr) {
         const dailyRecords = window.app.storage ? window.app.storage.getDailyRecords() : [];
         const daily = dailyRecords.find(d => d.date === dateStr);
-        const omzet = daily ? ((daily.kanovi || (daily.cash || 0) + (daily.qris || 0)) + (daily.restart || 0)) : 0;
+        const omzet = this.getDailyTotalOmzet(daily);
         const bonusAmount = Math.round(omzet * this.BONUS_PERCENTAGE);
 
         let record = this.bonusRecords.find(b => b.date === dateStr);
