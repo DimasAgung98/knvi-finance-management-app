@@ -78,19 +78,29 @@ window.app.storage = {
     },
 
     pushToFirebase(key, data) {
-        if (!window.app.firebase || !window.app.firebase.db) return;
-        const { db, doc, setDoc } = window.app.firebase;
-        const docRef = doc(db, 'kanovi_data', key);
-        this.updateSyncStatus('syncing', 'Menyimpan ke Cloud...');
-        setDoc(docRef, { data: data, updatedAt: Date.now() })
-            .then(() => {
-                this.updateSyncStatus('connected', 'Cloud Synced');
-            })
-            .catch(err => {
-                console.error("Firebase push error:", err);
-                this.updateSyncStatus('error', 'Gagal Sync ke Cloud');
-            });
-    },
+    if (!window.app.firebase || !window.app.firebase.db) return;
+
+    const { db, auth, doc, setDoc } = window.app.firebase;
+
+    // Jangan melakukan write ke Firestore sebelum user login
+    if (!auth || !auth.currentUser) {
+        console.log(`[Firebase Sync] Skip upload ${key}: user belum login.`);
+        return;
+    }
+
+    const docRef = doc(db, 'kanovi_data', key);
+
+    this.updateSyncStatus('syncing', 'Menyimpan ke Cloud...');
+
+    setDoc(docRef, { data: data, updatedAt: Date.now() })
+        .then(() => {
+            this.updateSyncStatus('connected', 'Cloud Synced');
+        })
+        .catch(err => {
+            console.error("Firebase push error:", err);
+            this.updateSyncStatus('error', 'Gagal Sync ke Cloud');
+        });
+},
 
     mergeCollections(local, remote) {
         if (!Array.isArray(local) && !Array.isArray(remote)) {
