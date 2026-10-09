@@ -2,9 +2,113 @@ window.app = window.app || {};
 
 window.app.daily = {
     data: [],
-    
+
+    // ==== Dashboard card visibility (hide/show) ====
+    metricLabels: {
+        'total-omzet': 'Total Omzet',
+        'omzet-kanovi': 'Omzet Kanovi (Loyverse)',
+        'omzet-restart': 'Omzet Restart (Tunai)',
+        'playbox': 'Pixel Playbox',
+        'hak-kanovi': 'Total Hak Kanovi',
+        'bagi-hasil-restart': 'Bagi Hasil Restart (25%)',
+        'total-pengeluaran': 'Total Pengeluaran',
+        'tabungan-cash': 'Saldo Tabungan CASH',
+        'tabungan-qris-bank': 'Saldo Tabungan QRIS / Bank',
+        'tabungan-restart': 'Tabungan Restart (Dana Cair)',
+        'total-all-cash': 'Total All Cash',
+        'kas-kecil': 'Kas Kecil Laci',
+        'selisih-kasir': 'Selisih/Minus Kasir'
+    },
+    hiddenMetrics: [],
+    customizeMode: false,
+    HIDDEN_METRICS_KEY: 'knvi_daily_hidden_metrics',
+
+    loadHiddenMetrics() {
+        try {
+            const stored = JSON.parse(localStorage.getItem(this.HIDDEN_METRICS_KEY) || '[]');
+            this.hiddenMetrics = Array.isArray(stored) ? stored : [];
+        } catch (e) {
+            this.hiddenMetrics = [];
+        }
+    },
+
+    saveHiddenMetrics() {
+        try {
+            localStorage.setItem(this.HIDDEN_METRICS_KEY, JSON.stringify(this.hiddenMetrics));
+        } catch (e) {
+            console.warn('Gagal menyimpan preferensi kartu:', e);
+        }
+    },
+
+    getMetricLabel(id) {
+        if (this.metricLabels[id]) return this.metricLabels[id];
+        const slot = document.querySelector(`.metric-slot[data-metric="${id}"]`);
+        const titleEl = slot ? slot.querySelector('.metric-title') : null;
+        return titleEl ? titleEl.textContent.trim() : id;
+    },
+
+    hideMetric(id) {
+        if (!id || this.hiddenMetrics.includes(id)) return;
+        this.hiddenMetrics.push(id);
+        this.saveHiddenMetrics();
+        this.applyMetricVisibility();
+    },
+
+    showMetric(id) {
+        this.hiddenMetrics = this.hiddenMetrics.filter(m => m !== id);
+        this.saveHiddenMetrics();
+        this.applyMetricVisibility();
+    },
+
+    showAllMetrics() {
+        this.hiddenMetrics = [];
+        this.saveHiddenMetrics();
+        this.applyMetricVisibility();
+    },
+
+    toggleCustomizeMode() {
+        this.customizeMode = !this.customizeMode;
+        this.applyMetricVisibility();
+    },
+
+    applyMetricVisibility() {
+        const grid = document.querySelector('#daily-page .dashboard-grid');
+        if (grid) {
+            grid.classList.toggle('customize-mode', this.customizeMode);
+        }
+
+        document.querySelectorAll('#daily-page .metric-slot').forEach(slot => {
+            const id = slot.getAttribute('data-metric');
+            slot.classList.toggle('is-hidden', this.hiddenMetrics.includes(id));
+        });
+
+        const btn = document.getElementById('daily-toggle-customize');
+        if (btn) {
+            btn.classList.toggle('btn-primary', this.customizeMode);
+            btn.classList.toggle('btn-secondary', !this.customizeMode);
+            btn.innerHTML = this.customizeMode
+                ? '<i class="ph ph-check"></i> Selesai Atur'
+                : '<i class="ph ph-sliders"></i> Atur Tampilan';
+        }
+
+        const tray = document.getElementById('daily-hidden-tray');
+        const chips = document.getElementById('daily-hidden-chips');
+        if (tray && chips) {
+            const valid = this.hiddenMetrics.filter(id => this.metricLabels[id] || document.querySelector(`#daily-page .metric-slot[data-metric="${id}"]`));
+            if (valid.length !== this.hiddenMetrics.length) {
+                this.hiddenMetrics = valid;
+                this.saveHiddenMetrics();
+            }
+            tray.style.display = valid.length ? 'flex' : 'none';
+            chips.innerHTML = valid.map(id =>
+                `<button type="button" class="metric-chip" onclick="window.app.daily.showMetric('${id}')" title="Tampilkan kembali"><i class="ph ph-eye"></i> ${this.getMetricLabel(id)}</button>`
+            ).join('');
+        }
+    },
+
     init() {
         this.loadData();
+        this.loadHiddenMetrics();
         this.renderDashboard();
     },
 
@@ -288,6 +392,7 @@ window.app.daily = {
         }
 
         this.renderExpenses();
+        this.applyMetricVisibility();
     },
 
     getFilteredExpenses() {
@@ -340,6 +445,7 @@ window.app.daily = {
 
     render() {
         this.loadData();
+        this.loadHiddenMetrics();
         this.renderDashboard();
     },
 

@@ -268,6 +268,79 @@ th {
   flex-direction: column;
   gap: 8px;
 }
+/* Hideable metric slot (wrapper so grid keeps auto-fitting when a card is hidden) */
+.metric-slot {
+  position: relative;
+  display: flex;
+  min-width: 0;
+}
+.metric-slot > .card {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.metric-slot.is-hidden {
+  display: none;
+}
+/* Highlight the two main cash cards so they stand out from the rest.
+   !important is required because each card carries inline border styles. */
+.metric-slot[data-metric="tabungan-qris-bank"] > .card,
+.metric-slot[data-metric="total-all-cash"] > .card {
+  border-width: 2px !important;
+  border-left-width: 6px !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+}
+.metric-slot[data-metric="tabungan-qris-bank"] > .card .metric-value,
+.metric-slot[data-metric="total-all-cash"] > .card .metric-value {
+  font-size: 2rem;
+}
+/* Per-card hide button, only shown while "Atur Tampilan" mode is on */
+.metric-hide-btn {
+  display: none;
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 2;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  background: var(--secondary-color);
+  border: 1px solid var(--border-color);
+  transition: all 0.15s ease;
+}
+.metric-hide-btn:hover {
+  color: var(--danger-color);
+  border-color: var(--danger-color);
+}
+.dashboard-grid.customize-mode .metric-hide-btn {
+  display: inline-flex;
+}
+.dashboard-grid.customize-mode .metric-slot > .card {
+  padding-top: 42px;
+  outline: 1px dashed var(--border-color);
+  outline-offset: 2px;
+}
+/* Chips in the "hidden cards" tray */
+.metric-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  transition: all 0.15s ease;
+}
+.metric-chip:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
 .metric-title {
   color: var(--text-secondary);
   font-size: 0.875rem;

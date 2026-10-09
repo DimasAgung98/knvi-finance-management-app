@@ -36,7 +36,7 @@
 
     <!-- Styles -->
     <link rel="stylesheet" href="css/theme.css">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=10">
 </head>
 
 <body>
@@ -890,7 +890,11 @@
                     <div
                         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
                         <h3 style="margin: 0;">Dashboard Rekap Harian</h3>
-                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                            <button type="button" class="btn btn-secondary" id="daily-toggle-customize"
+                                onclick="window.app.daily.toggleCustomizeMode()"
+                                title="Tampilkan tombol sembunyikan pada tiap kartu"><i class="ph ph-sliders"></i>
+                                Atur Tampilan</button>
                             <select id="daily-filter-type" class="form-control" style="width: auto; min-width: 140px;"
                                 onchange="window.app.daily.onFilterChange()">
                                 <option value="today">Hari Ini</option>
@@ -905,177 +909,239 @@
                         </div>
                     </div>
 
+                    <div id="daily-hidden-tray"
+                        style="display: none; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; padding: 10px 12px; border: 1px dashed var(--border-color); border-radius: var(--radius-sm); background: var(--secondary-color);">
+                        <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 600;"><i
+                                class="ph ph-eye-slash"></i> Kartu disembunyikan:</span>
+                        <span id="daily-hidden-chips" style="display: flex; gap: 6px; flex-wrap: wrap;"></span>
+                        <button type="button" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.78rem;"
+                            onclick="window.app.daily.showAllMetrics()"><i class="ph ph-eye"></i> Tampilkan
+                            Semua</button>
+                    </div>
+
                     <div class="dashboard-grid">
-                        <div class="card metric-card" style="border-left: 4px solid var(--primary-color);">
-                            <span class="metric-title">Total Omzet (Kanovi + Restart + Playbox)</span>
-                            <span class="metric-value" id="daily-dash-omzet" style="color: var(--primary-color);">Rp
-                                0</span>
+                <div class="metric-slot" data-metric="total-omzet">
+                    <button type="button" class="metric-hide-btn" title="Sembunyikan kartu ini"
+                        onclick="window.app.daily.hideMetric('total-omzet')"><i class="ph ph-eye-slash"></i></button>
+                    <div class="card metric-card" style="border-left: 4px solid var(--primary-color);">
+                        <span class="metric-title">Total Omzet (Kanovi + Restart + Playbox)</span>
+                        <span class="metric-value" id="daily-dash-omzet" style="color: var(--primary-color);">Rp
+                            0</span>
+                    </div>
+                </div>
+                <div class="metric-slot" data-metric="omzet-kanovi">
+                    <button type="button" class="metric-hide-btn" title="Sembunyikan kartu ini"
+                        onclick="window.app.daily.hideMetric('omzet-kanovi')"><i class="ph ph-eye-slash"></i></button>
+                    <div class="card metric-card" style="border-left: 4px solid #339af0;">
+                        <span class="metric-title">Omzet Kanovi (Loyverse)</span>
+                        <span class="metric-value" id="daily-dash-kanovi" style="color: #339af0;">Rp 0</span>
+                    </div>
+                </div>
+                <div class="metric-slot" data-metric="omzet-restart">
+                    <button type="button" class="metric-hide-btn" title="Sembunyikan kartu ini"
+                        onclick="window.app.daily.hideMetric('omzet-restart')"><i class="ph ph-eye-slash"></i></button>
+                    <div class="card metric-card" style="border-left: 4px solid #f59f00;">
+                        <span class="metric-title">Omzet Restart (Tunai)</span>
+                        <span class="metric-value" id="daily-dash-restart" style="color: #f59f00;">Rp 0</span>
+                    </div>
+                </div>
+                <div class="metric-slot" data-metric="playbox">
+                    <button type="button" class="metric-hide-btn" title="Sembunyikan kartu ini"
+                        onclick="window.app.daily.hideMetric('playbox')"><i class="ph ph-eye-slash"></i></button>
+                    <div class="card metric-card" style="border-left: 4px solid #1098ad;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <span class="metric-title" style="font-weight: 600;">Pixel Playbox</span>
+                            <span
+                                style="font-size: 0.72rem; background: rgba(16, 152, 173, 0.15); color: #1098ad; padding: 2px 6px; border-radius: 10px; font-weight: 600;">Kerjasama</span>
                         </div>
-                        <div class="card metric-card" style="border-left: 4px solid #339af0;">
-                            <span class="metric-title">Omzet Kanovi (Loyverse)</span>
-                            <span class="metric-value" id="daily-dash-kanovi" style="color: #339af0;">Rp 0</span>
-                        </div>
-                        <div class="card metric-card" style="border-left: 4px solid #f59f00;">
-                            <span class="metric-title">Omzet Restart (Tunai)</span>
-                            <span class="metric-value" id="daily-dash-restart" style="color: #f59f00;">Rp 0</span>
-                        </div>
-                        <div class="card metric-card" style="border-left: 4px solid #1098ad;">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                                <span class="metric-title" style="font-weight: 600;">Pixel Playbox</span>
-                                <span
-                                    style="font-size: 0.72rem; background: rgba(16, 152, 173, 0.15); color: #1098ad; padding: 2px 6px; border-radius: 10px; font-weight: 600;">Kerjasama</span>
+                        <span class="metric-value" id="daily-dash-playbox"
+                            style="color: #1098ad; margin-bottom: 6px;">Rp 0</span>
+                        <div
+                            style="background: rgba(16, 152, 173, 0.08); border: 1px solid rgba(16, 152, 173, 0.2); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.82rem; display: flex; flex-direction: column; gap: 4px;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: var(--text-secondary);">Tiket:</span>
+                                <strong id="daily-dash-playbox-qty" style="color: var(--text-primary);">0 Reg • 0
+                                    Pkt</strong>
                             </div>
-                            <span class="metric-value" id="daily-dash-playbox"
-                                style="color: #1098ad; margin-bottom: 6px;">Rp 0</span>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: var(--text-secondary);">Hak Playbox (disetor):</span>
+                                <strong id="daily-dash-playbox-share" style="color: #e03131;">Rp 0</strong>
+                            </div>
                             <div
-                                style="background: rgba(16, 152, 173, 0.08); border: 1px solid rgba(16, 152, 173, 0.2); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.82rem; display: flex; flex-direction: column; gap: 4px;">
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span style="color: var(--text-secondary);">Tiket:</span>
-                                    <strong id="daily-dash-playbox-qty" style="color: var(--text-primary);">0 Reg • 0
-                                        Pkt</strong>
-                                </div>
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span style="color: var(--text-secondary);">Hak Playbox (disetor):</span>
-                                    <strong id="daily-dash-playbox-share" style="color: #e03131;">Rp 0</strong>
-                                </div>
-                                <div
-                                    style="display: flex; justify-content: space-between; padding-top: 4px; border-top: 1px dashed rgba(16, 152, 173, 0.25);">
-                                    <span style="color: var(--text-secondary);">Hak Kanovi (laba):</span>
-                                    <strong id="daily-dash-playbox-kanovi" style="color: #2b8a3e;">+ Rp 0</strong>
-                                </div>
+                                style="display: flex; justify-content: space-between; padding-top: 4px; border-top: 1px dashed rgba(16, 152, 173, 0.25);">
+                                <span style="color: var(--text-secondary);">Hak Kanovi (laba):</span>
+                                <strong id="daily-dash-playbox-kanovi" style="color: #2b8a3e;">+ Rp 0</strong>
                             </div>
-                        </div>
-                        <div class="card metric-card" style="border-left: 4px solid #8e44ad;">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                                <span class="metric-title" style="font-weight: 600;">Total Hak Kanovi</span>
-                                <span
-                                    style="font-size: 0.75rem; background: rgba(142, 68, 173, 0.15); color: #8e44ad; padding: 2px 8px; border-radius: 12px; font-weight: 600;">KNVI
-                                    + 75%R + PB</span>
-                            </div>
-                            <span class="metric-value" id="daily-dash-kanovi-share"
-                                style="color: #8e44ad; margin-bottom: 6px;">Rp 0</span>
-
-                            <div
-                                style="background: rgba(142, 68, 173, 0.08); border: 1px solid rgba(142, 68, 173, 0.2); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.82rem; display: flex; flex-direction: column; gap: 4px;">
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span style="color: var(--text-secondary);">Omzet Kanovi (Loyverse):</span>
-                                    <strong id="daily-dash-kanovi-base" style="color: #339af0;">Rp 0</strong>
-                                </div>
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span style="color: var(--text-secondary);">75% dari Restart:</span>
-                                    <strong id="daily-dash-restart-75" style="color: #8e44ad;">+ Rp 0</strong>
-                                </div>
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span style="color: var(--text-secondary);">Hak Kanovi dari Playbox:</span>
-                                    <strong id="daily-dash-playbox-sub" style="color: #1098ad;">+ Rp 0</strong>
-                                </div>
-                                <div
-                                    style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed rgba(142, 68, 173, 0.25); display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem;">
-                                    <span style="color: var(--text-muted);">Rumus:</span>
-                                    <span id="daily-dash-kanovi-formula"
-                                        style="font-weight: 600; color: var(--text-primary);">Rp 0 + Rp 0 + Rp 0 = Rp
-                                        0</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card metric-card" style="border-left: 4px solid #e03131;">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                                <span class="metric-title" style="font-weight: 600;">Bagi Hasil Restart (25% Hak
-                                    Restart)</span>
-                                <span
-                                    style="font-size: 0.75rem; background: rgba(224, 49, 49, 0.15); color: #e03131; padding: 2px 8px; border-radius: 12px; font-weight: 600;">Hak
-                                    Restart</span>
-                            </div>
-                            <span class="metric-value" id="daily-dash-restart-cut"
-                                style="color: #e03131; margin-bottom: 6px;">Rp 0</span>
-
-                            <div
-                                style="background: rgba(224, 49, 49, 0.08); border: 1px solid rgba(224, 49, 49, 0.2); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.82rem; display: flex; flex-direction: column; gap: 4px;">
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span style="color: var(--text-secondary);">Total Omzet Restart:</span>
-                                    <strong id="daily-dash-restart-total-detail" style="color: #f59f00;">Rp 0</strong>
-                                </div>
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span style="color: var(--text-secondary);">25% untuk Restart:</span>
-                                    <strong id="daily-dash-restart-25-sub" style="color: #e03131;">Rp 0</strong>
-                                </div>
-                                <div
-                                    style="display: flex; justify-content: space-between; padding-top: 4px; border-top: 1px dashed rgba(224, 49, 49, 0.25);">
-                                    <span style="color: var(--text-secondary);">75% disetor ke Kanovi:</span>
-                                    <strong id="daily-dash-restart-75-sub" style="color: #8e44ad;">Rp 0</strong>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card metric-card" style="border-left: 4px solid var(--danger-color);">
-                            <span class="metric-title">Total Pengeluaran (Periode Ini)</span>
-                            <span class="metric-value" id="daily-dash-total-expense"
-                                style="color: var(--danger-color);">Rp 0</span>
-                        </div>
-                        <div class="card metric-card"
-                            style="border-left: 4px solid var(--success-color); background: rgba(43, 138, 62, 0.05);">
-                            <span class="metric-title">Saldo Tabungan CASH (Tersedia)</span>
-                            <span class="metric-value" id="daily-dash-cash-savings"
-                                style="color: var(--success-color);">Rp 0</span>
-                        </div>
-                        <div class="card metric-card"
-                            style="border-left: 4px solid var(--success-color); background: rgba(41, 123, 231, 0.05);">
-                            <span class="metric-title">Saldo Tabungan QRIS / Bank</span>
-                            <span class="metric-value" id="daily-dash-bank-savings" style="color: var(--info-color);">Rp
-                                0</span>
-                        </div>
-                        <div class="card metric-card"
-                            style="border-left: 4px solid #fd7e14; background: rgba(253, 126, 20, 0.05);">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                                <span class="metric-title">Tabungan Restart (Dana Cair)</span>
-                                <span
-                                    style="font-size: 0.72rem; background: rgba(253, 126, 20, 0.15); color: #fd7e14; padding: 2px 6px; border-radius: 10px; font-weight: 600;">75%
-                                    Cair</span>
-                            </div>
-                            <span class="metric-value" id="daily-dash-restart-savings" style="color: #fd7e14;">Rp
-                                0</span>
-                            <div
-                                style="font-size: 0.78rem; color: var(--text-muted); display: flex; justify-content: space-between;">
-                                <span>Menunggu Cair:</span>
-                                <strong id="daily-dash-restart-pending" style="color: #e03131;">Rp 0</strong>
-                            </div>
-                        </div>
-                        <div class="card metric-card"
-                            style="border-left: 4px solid #0ca678; background: rgba(12, 166, 120, 0.07);">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                                <span class="metric-title" style="font-weight: 600;">Total All Cash</span>
-                                <span
-                                    style="font-size: 0.72rem; background: rgba(12, 166, 120, 0.15); color: #0ca678; padding: 2px 6px; border-radius: 10px; font-weight: 600;">CASH
-                                    + Restart</span>
-                            </div>
-                            <span class="metric-value" id="daily-dash-all-cash" style="color: #0ca678;">Rp 0</span>
-                            <div
-                                style="background: rgba(12, 166, 120, 0.08); border: 1px solid rgba(12, 166, 120, 0.2); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 0.78rem; display: flex; flex-direction: column; gap: 4px;">
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span style="color: var(--text-secondary);">Saldo Tabungan CASH:</span>
-                                    <strong id="daily-dash-all-cash-cash" style="color: var(--success-color);">Rp 0</strong>
-                                </div>
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span style="color: var(--text-secondary);">Tabungan Restart (Cair):</span>
-                                    <strong id="daily-dash-all-cash-restart" style="color: #fd7e14;">Rp 0</strong>
-                                </div>
-                                <div
-                                    style="margin-top: 2px; padding-top: 4px; border-top: 1px dashed rgba(12, 166, 120, 0.3); display: flex; justify-content: space-between;">
-                                    <span style="color: var(--text-muted); font-size: 0.75rem;">Total cash riil:</span>
-                                    <strong id="daily-dash-all-cash-total" style="color: #0ca678;">Rp 0</strong>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card metric-card" style="border-left: 4px solid var(--warning-color);">
-                            <span class="metric-title">Kas Kecil Laci (Periode Ini)</span>
-                            <span class="metric-value" id="daily-dash-kaskecil" style="color: var(--warning-color);">Rp
-                                0</span>
-                        </div>
-                        <div class="card metric-card" style="border-left: 4px solid #fab005;">
-                            <span class="metric-title">Selisih/Minus Kasir (Periode)</span>
-                            <span class="metric-value" id="daily-dash-shortage" style="color: #fab005;">Rp 0</span>
                         </div>
                     </div>
                 </div>
+                <div class="metric-slot" data-metric="hak-kanovi">
+                    <button type="button" class="metric-hide-btn" title="Sembunyikan kartu ini"
+                        onclick="window.app.daily.hideMetric('hak-kanovi')"><i class="ph ph-eye-slash"></i></button>
+                    <div class="card metric-card" style="border-left: 4px solid #8e44ad;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <span class="metric-title" style="font-weight: 600;">Total Hak Kanovi</span>
+                            <span
+                                style="font-size: 0.75rem; background: rgba(142, 68, 173, 0.15); color: #8e44ad; padding: 2px 8px; border-radius: 12px; font-weight: 600;">KNVI
+                                + 75%R + PB</span>
+                        </div>
+                        <span class="metric-value" id="daily-dash-kanovi-share"
+                            style="color: #8e44ad; margin-bottom: 6px;">Rp 0</span>
+
+                        <div
+                            style="background: rgba(142, 68, 173, 0.08); border: 1px solid rgba(142, 68, 173, 0.2); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.82rem; display: flex; flex-direction: column; gap: 4px;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: var(--text-secondary);">Omzet Kanovi (Loyverse):</span>
+                                <strong id="daily-dash-kanovi-base" style="color: #339af0;">Rp 0</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: var(--text-secondary);">75% dari Restart:</span>
+                                <strong id="daily-dash-restart-75" style="color: #8e44ad;">+ Rp 0</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: var(--text-secondary);">Hak Kanovi dari Playbox:</span>
+                                <strong id="daily-dash-playbox-sub" style="color: #1098ad;">+ Rp 0</strong>
+                            </div>
+                            <div
+                                style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed rgba(142, 68, 173, 0.25); display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem;">
+                                <span style="color: var(--text-muted);">Rumus:</span>
+                                <span id="daily-dash-kanovi-formula"
+                                    style="font-weight: 600; color: var(--text-primary);">Rp 0 + Rp 0 + Rp 0 = Rp
+                                    0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="metric-slot" data-metric="bagi-hasil-restart">
+                    <button type="button" class="metric-hide-btn" title="Sembunyikan kartu ini"
+                        onclick="window.app.daily.hideMetric('bagi-hasil-restart')"><i class="ph ph-eye-slash"></i></button>
+                    <div class="card metric-card" style="border-left: 4px solid #e03131;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <span class="metric-title" style="font-weight: 600;">Bagi Hasil Restart (25% Hak
+                                Restart)</span>
+                            <span
+                                style="font-size: 0.75rem; background: rgba(224, 49, 49, 0.15); color: #e03131; padding: 2px 8px; border-radius: 12px; font-weight: 600;">Hak
+                                Restart</span>
+                        </div>
+                        <span class="metric-value" id="daily-dash-restart-cut"
+                            style="color: #e03131; margin-bottom: 6px;">Rp 0</span>
+
+                        <div
+                            style="background: rgba(224, 49, 49, 0.08); border: 1px solid rgba(224, 49, 49, 0.2); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 0.82rem; display: flex; flex-direction: column; gap: 4px;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: var(--text-secondary);">Total Omzet Restart:</span>
+                                <strong id="daily-dash-restart-total-detail" style="color: #f59f00;">Rp 0</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: var(--text-secondary);">25% untuk Restart:</span>
+                                <strong id="daily-dash-restart-25-sub" style="color: #e03131;">Rp 0</strong>
+                            </div>
+                            <div
+                                style="display: flex; justify-content: space-between; padding-top: 4px; border-top: 1px dashed rgba(224, 49, 49, 0.25);">
+                                <span style="color: var(--text-secondary);">75% disetor ke Kanovi:</span>
+                                <strong id="daily-dash-restart-75-sub" style="color: #8e44ad;">Rp 0</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="metric-slot" data-metric="total-pengeluaran">
+                    <button type="button" class="metric-hide-btn" title="Sembunyikan kartu ini"
+                        onclick="window.app.daily.hideMetric('total-pengeluaran')"><i class="ph ph-eye-slash"></i></button>
+                    <div class="card metric-card" style="border-left: 4px solid var(--danger-color);">
+                        <span class="metric-title">Total Pengeluaran (Periode Ini)</span>
+                        <span class="metric-value" id="daily-dash-total-expense"
+                            style="color: var(--danger-color);">Rp 0</span>
+                    </div>
+                </div>
+                <div class="metric-slot" data-metric="tabungan-cash">
+                    <button type="button" class="metric-hide-btn" title="Sembunyikan kartu ini"
+                        onclick="window.app.daily.hideMetric('tabungan-cash')"><i class="ph ph-eye-slash"></i></button>
+                    <div class="card metric-card"
+                        style="border-left: 4px solid var(--success-color); background: rgba(43, 138, 62, 0.05);">
+                        <span class="metric-title">Saldo Tabungan CASH (Tersedia)</span>
+                        <span class="metric-value" id="daily-dash-cash-savings"
+                            style="color: var(--success-color);">Rp 0</span>
+                    </div>
+                </div>
+                <div class="metric-slot" data-metric="tabungan-qris-bank">
+                    <button type="button" class="metric-hide-btn" title="Sembunyikan kartu ini"
+                        onclick="window.app.daily.hideMetric('tabungan-qris-bank')"><i class="ph ph-eye-slash"></i></button>
+                    <div class="card metric-card"
+                        style="border-left: 4px solid var(--success-color); background: rgba(41, 123, 231, 0.05);">
+                        <span class="metric-title">Saldo Tabungan QRIS / Bank</span>
+                        <span class="metric-value" id="daily-dash-bank-savings" style="color: var(--info-color);">Rp
+                            0</span>
+                    </div>
+                </div>
+                <div class="metric-slot" data-metric="tabungan-restart">
+                    <button type="button" class="metric-hide-btn" title="Sembunyikan kartu ini"
+                        onclick="window.app.daily.hideMetric('tabungan-restart')"><i class="ph ph-eye-slash"></i></button>
+                    <div class="card metric-card"
+                        style="border-left: 4px solid #fd7e14; background: rgba(253, 126, 20, 0.05);">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <span class="metric-title">Tabungan Restart (Dana Cair)</span>
+                            <span
+                                style="font-size: 0.72rem; background: rgba(253, 126, 20, 0.15); color: #fd7e14; padding: 2px 6px; border-radius: 10px; font-weight: 600;">75%
+                                Cair</span>
+                        </div>
+                        <span class="metric-value" id="daily-dash-restart-savings" style="color: #fd7e14;">Rp
+                            0</span>
+                        <div
+                            style="font-size: 0.78rem; color: var(--text-muted); display: flex; justify-content: space-between;">
+                            <span>Menunggu Cair:</span>
+                            <strong id="daily-dash-restart-pending" style="color: #e03131;">Rp 0</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="metric-slot" data-metric="total-all-cash">
+                    <button type="button" class="metric-hide-btn" title="Sembunyikan kartu ini"
+                        onclick="window.app.daily.hideMetric('total-all-cash')"><i class="ph ph-eye-slash"></i></button>
+                    <div class="card metric-card"
+                        style="border-left: 4px solid #0ca678; background: rgba(12, 166, 120, 0.07);">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <span class="metric-title" style="font-weight: 600;">Total All Cash</span>
+                            <span
+                                style="font-size: 0.72rem; background: rgba(12, 166, 120, 0.15); color: #0ca678; padding: 2px 6px; border-radius: 10px; font-weight: 600;">CASH
+                                + Restart</span>
+                        </div>
+                        <span class="metric-value" id="daily-dash-all-cash" style="color: #0ca678;">Rp 0</span>
+                        <div
+                            style="background: rgba(12, 166, 120, 0.08); border: 1px solid rgba(12, 166, 120, 0.2); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 0.78rem; display: flex; flex-direction: column; gap: 4px;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: var(--text-secondary);">Saldo Tabungan CASH:</span>
+                                <strong id="daily-dash-all-cash-cash" style="color: var(--success-color);">Rp 0</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: var(--text-secondary);">Tabungan Restart (Cair):</span>
+                                <strong id="daily-dash-all-cash-restart" style="color: #fd7e14;">Rp 0</strong>
+                            </div>
+                            <div
+                                style="margin-top: 2px; padding-top: 4px; border-top: 1px dashed rgba(12, 166, 120, 0.3); display: flex; justify-content: space-between;">
+                                <span style="color: var(--text-muted); font-size: 0.75rem;">Total cash riil:</span>
+                                <strong id="daily-dash-all-cash-total" style="color: #0ca678;">Rp 0</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="metric-slot" data-metric="kas-kecil">
+                    <button type="button" class="metric-hide-btn" title="Sembunyikan kartu ini"
+                        onclick="window.app.daily.hideMetric('kas-kecil')"><i class="ph ph-eye-slash"></i></button>
+                    <div class="card metric-card" style="border-left: 4px solid var(--warning-color);">
+                        <span class="metric-title">Kas Kecil Laci (Periode Ini)</span>
+                        <span class="metric-value" id="daily-dash-kaskecil" style="color: var(--warning-color);">Rp
+                            0</span>
+                    </div>
+                </div>
+                <div class="metric-slot" data-metric="selisih-kasir">
+                    <button type="button" class="metric-hide-btn" title="Sembunyikan kartu ini"
+                        onclick="window.app.daily.hideMetric('selisih-kasir')"><i class="ph ph-eye-slash"></i></button>
+                    <div class="card metric-card" style="border-left: 4px solid #fab005;">
+                        <span class="metric-title">Selisih/Minus Kasir (Periode)</span>
+                        <span class="metric-value" id="daily-dash-shortage" style="color: #fab005;">Rp 0</span>
+                    </div>
+                </div>
+                </div>
+            </div>
 
                 <!-- Record List -->
                 <div class="card">
@@ -1303,7 +1369,7 @@
     <script src="js/pages/pricing.js?v=9"></script>
     <script src="js/pages/opex.js?v=9"></script>
     <script src="js/pages/expenses.js?v=9"></script>
-    <script src="js/pages/daily.js?v=9"></script>
+    <script src="js/pages/daily.js?v=10"></script>
     <script src="js/pages/bonus.js?v=9"></script>
 
     <script src="js/app.js?v=9"></script>
