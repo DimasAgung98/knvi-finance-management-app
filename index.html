@@ -36,7 +36,7 @@
 
     <!-- Styles -->
     <link rel="stylesheet" href="css/theme.css">
-    <link rel="stylesheet" href="css/style.css?v=10">
+    <link rel="stylesheet" href="css/style.css?v=12">
 </head>
 
 <body>
@@ -320,15 +320,15 @@
                 <!-- List View -->
                 <div id="ingredient-list-view">
                     <div
-                        style="display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center; gap: 10px;">
-                        <div style="display: flex; gap: 10px; flex: 1;">
+                        style="display: flex; justify-content: space-between; margin-bottom: 20px; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <div style="display: flex; gap: 10px; flex: 1 1 260px; flex-wrap: wrap; min-width: 0;">
                             <input type="text" class="form-control" style="max-width: 300px;"
                                 placeholder="Search ingredients..." id="ingredient-search">
                             <select class="form-control" style="max-width: 200px;" id="ingredient-category-filter">
                                 <option value="">All Categories</option>
                             </select>
                         </div>
-                        <div style="display: flex; gap: 10px;">
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                             <input type="file" id="csv-upload-input" accept=".csv" style="display: none;"
                                 onchange="window.app.ingredients.handleCsvUpload(event)">
                             <button class="btn btn-secondary" onclick="window.app.ingredients.exportCsv()"
@@ -355,10 +355,10 @@
                 <div id="premix-builder-view" style="display:none;">
                     <div class="card" style="padding: 0; overflow: hidden;">
                         <div
-                            style="padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                            style="padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                             <div>
                                 <h3 style="margin-bottom: 10px;">Premix Builder</h3>
-                                <div style="display: flex; gap: 10px;">
+                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                                     <input type="text" id="builder-premix-name" class="form-control"
                                         placeholder="Premix Name (e.g. Simple Syrup)"
                                         style="width: 250px; font-weight: 500;">
@@ -367,7 +367,7 @@
                                     <datalist id="premix-category-list"></datalist>
                                 </div>
                             </div>
-                            <div style="display: flex; gap: 10px;">
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                                 <button class="btn btn-secondary"
                                     onclick="window.app.ingredients.closePremixBuilder()">Cancel</button>
                                 <button class="btn btn-primary" onclick="window.app.ingredients.savePremix()"><i
@@ -438,14 +438,14 @@
                 <div id="recipe-list-view">
                     <div
                         style="display: flex; justify-content: space-between; margin-bottom: 12px; align-items: center; flex-wrap: wrap; gap: 10px;">
-                        <input type="text" class="form-control" style="max-width: 300px; flex: 1;"
+                        <input type="text" class="form-control" style="max-width: 300px; flex: 1 1 200px; min-width: 0;"
                             placeholder="Search recipes..." id="recipe-search">
-                        <div style="display: flex; gap: 10px;">
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end;">
                             <button class="btn btn-secondary" onclick="window.app.recipes.printAllCheatSheets()"
                                 title="Print All SOP"><i class="ph ph-printer"></i> Print</button>
                             <button class="btn btn-secondary" onclick="window.app.recipes.openCategoryManager()"><i
                                     class="ph ph-list"></i> Kategori</button>
-                            <div style="display: flex; gap: 8px;">
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                                 <button class="btn btn-secondary" onclick="window.app.recipes.openBulkUpsizeModal()"><i
                                         class="ph ph-stack"></i> Bulk Upsize</button>
                                 <button class="btn btn-primary" onclick="window.app.recipes.openBuilder()"><i
@@ -467,10 +467,10 @@
                 <div id="recipe-builder-view" style="display:none;">
                     <div class="card" style="padding: 0; overflow: hidden;">
                         <div
-                            style="padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                            style="padding: 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                             <div>
                                 <h3 style="margin-bottom: 10px;">Recipe Builder</h3>
-                                <div style="display: flex; gap: 10px; align-items: center;">
+                                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                                     <input type="text" id="builder-recipe-name" class="form-control"
                                         placeholder="Enter Recipe Name..."
                                         style="max-width: 300px; font-size: 1.1rem; font-weight: 500;">

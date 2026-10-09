@@ -122,6 +122,9 @@ input, select, textarea {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  /* CRITICAL: flex items default to min-width:auto, so a wide child (e.g. a
+     table) would stretch this column and overflow the viewport on PC/iPad. */
+  min-width: 0;
 }
 
 .top-header {
@@ -145,6 +148,7 @@ input, select, textarea {
 .content-area {
   padding: 32px;
   flex: 1;
+  min-width: 0; /* see .main-content: keeps wide tables scrollable, not overflowing */
   display: none; /* Hide all by default */
 }
 
@@ -200,7 +204,12 @@ input, select, textarea {
 }
 
 .table-container {
-  overflow-x: auto;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.table-container table {
+  /* Wide tables must scroll inside their wrapper, never widen the page */
+  min-width: max-content;
 }
 table {
   width: 100%;
@@ -259,7 +268,7 @@ th {
 /* Dashboard Grid */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 24px;
   margin-bottom: 24px;
 }
@@ -267,6 +276,9 @@ th {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  /* Enables container-query sizing for .metric-value so long rupiah values
+     shrink to fit instead of wrapping (e.g. "-Rp 10.050.000"). */
+  container-type: inline-size;
 }
 /* Hideable metric slot (wrapper so grid keeps auto-fitting when a card is hidden) */
 .metric-slot {
@@ -291,7 +303,8 @@ th {
 }
 .metric-slot[data-metric="tabungan-qris-bank"] > .card .metric-value,
 .metric-slot[data-metric="total-all-cash"] > .card .metric-value {
-  font-size: 2rem;
+  font-size: 1.75rem;
+  font-size: clamp(1.15rem, 10.5cqw, 2rem);
 }
 /* Per-card hide button, only shown while "Atur Tampilan" mode is on */
 .metric-hide-btn {
@@ -347,15 +360,30 @@ th {
   font-weight: 500;
 }
 .metric-value {
-  font-size: 1.75rem;
+  /* Fluid + container-aware so long rupiah values never overflow narrow
+     (iPhone) cards. 1.5rem is the fallback where cqw is unsupported. */
+  font-size: 1.5rem;
+  font-size: clamp(1.05rem, 9cqw, 1.75rem);
+  white-space: nowrap;
   font-weight: 700;
   color: var(--text-primary);
+}
+/* Long inline formulas inside cards must wrap instead of stretching the card */
+.metric-card [id$="-formula"] {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 /* Excel-like Table Styles */
 .excel-table {
   width: 100%;
   border-collapse: collapse;
+}
+/* Tables keep their natural column widths and scroll inside their wrapper
+   (every .excel-table is placed inside an overflow-x:auto container). */
+.excel-table {
+  min-width: max-content;
 }
 .excel-table th, .excel-table td {
   padding: 10px 12px;
@@ -515,6 +543,11 @@ th {
   .dashboard-hero-grid, .dashboard-rankings-grid, .dashboard-stats-grid {
     gap: 16px;
   }
+  /* Cards that span 2 columns would create an implicit column in the
+     1-column grid below 768px and cause horizontal overflow. */
+  .dashboard-stats-grid > .card {
+    grid-column: span 1 !important;
+  }
 }
 
 @media (max-width: 768px) {
@@ -547,15 +580,54 @@ th {
   }
   .main-content {
     margin-left: 0;
+    width: 100%;
   }
   .dashboard-hero-grid, .dashboard-rankings-grid, .dashboard-stats-grid {
     grid-template-columns: 1fr;
   }
   .content-area {
     padding: 16px;
+    width: 100%;
   }
   .top-header {
     padding: 0 16px;
+  }
+}
+
+/* Small phones (iPhone SE / iPhone 12 mini and below) */
+@media (max-width: 480px) {
+  .content-area {
+    padding: 12px;
+  }
+  .card {
+    padding: 16px;
+  }
+  .top-header {
+    height: auto;
+    min-height: var(--header-height);
+    padding: 10px 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .page-title {
+    font-size: 1.15rem;
+  }
+  .header-actions {
+    flex-wrap: wrap;
+  }
+  .dashboard-grid {
+    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  }
+  .sidebar-nav {
+    padding: 10px 12px;
+  }
+  .nav-item {
+    font-size: 0.875rem;
+    padding: 8px 10px;
+  }
+  .modal-content {
+    padding: 16px;
   }
 }
 
