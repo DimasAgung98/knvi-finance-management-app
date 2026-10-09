@@ -266,6 +266,13 @@ window.app.daily = {
         setEl('daily-dash-bank-savings', window.app.formatter.currency(saldoTabunganBank));
         setEl('daily-dash-restart-savings', window.app.formatter.currency(saldoTabunganRestart));
         setEl('daily-dash-restart-pending', window.app.formatter.currency(allTimeRestartPending));
+
+        // Total All Cash = Saldo Tabungan CASH + Tabungan Restart (Dana Cair)
+        const totalAllCash = saldoTabunganCash + saldoTabunganRestart;
+        setEl('daily-dash-all-cash', window.app.formatter.currency(totalAllCash));
+        setEl('daily-dash-all-cash-cash', window.app.formatter.currency(saldoTabunganCash));
+        setEl('daily-dash-all-cash-restart', '+ ' + window.app.formatter.currency(saldoTabunganRestart));
+        setEl('daily-dash-all-cash-total', window.app.formatter.currency(totalAllCash));
         setEl('daily-dash-kaskecil', window.app.formatter.currency(totalKasKecil));
 
         const shortageEl = document.getElementById('daily-dash-shortage');
